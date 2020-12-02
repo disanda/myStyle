@@ -7,7 +7,7 @@ from defaults import get_cfg_defaults
 from StyleGAN import train
 
 
-def train_net(gpu_id=0, args):
+def train_net(gpu_id, args):
     torch.cuda.set_device(0)
 
     cfg = get_cfg_defaults()
@@ -60,4 +60,4 @@ if __name__ == '__main__':
         type=str,
     )
     args = parser.parse_args()
-    train_net(0, args)
+    train_net(gpu_id=0, args)
