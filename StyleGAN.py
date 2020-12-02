@@ -1,7 +1,6 @@
 import torch.utils.data
 from torch import optim
 from torchvision.utils import save_image
-import natiteUtils.utils
 import torch.cuda.comm
 import torch.cuda.nccl
 import dlutils.pytorch.count_parameters as count_param_override
@@ -9,6 +8,7 @@ import module.lod_driver
 from dataUtils.dataloader import *
 from module.model import Model
 from module.net import *
+import nativeUtils.utils as utils
 from nativeUtils.tracker import LossTracker
 from nativeUtils.checkpointer import Checkpointer
 from nativeUtils.scheduler import ComboMultiStepLR
