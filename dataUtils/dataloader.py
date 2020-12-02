@@ -11,6 +11,8 @@ import torch.utils
 import torch.utils.data
 import time
 
+import sys
+sys.path.append('../')
 from dlutils.batch_provider import batch_provider
 from dlutils.shuffle import shuffle_ndarray
 
