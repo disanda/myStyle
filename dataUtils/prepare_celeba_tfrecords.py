@@ -1,7 +1,8 @@
 import zipfile
 import tqdm
-from defaults import get_cfg_defaults
 import sys
+sys.path.append('../')
+from defaults import get_cfg_defaults
 import logging
 
 from dlutils import download
