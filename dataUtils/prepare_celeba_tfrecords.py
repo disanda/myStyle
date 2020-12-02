@@ -1,3 +1,4 @@
+#把celebaA按人物ID(identity_CelebA.txt)分类为多个文件夹,tf文件
 import zipfile
 import tqdm
 import sys

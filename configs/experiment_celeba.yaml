@@ -1,7 +1,7 @@
 DATASET:
   PART_COUNT: 16
   SIZE: 202576
-  PATH: ./datasets/celeba/tfrecords/celeba-r%02d.tfrecords.%03d
+  PATH: ./dataUtils/datasets/celeba/tfrecords/celeba-r%02d.tfrecords.%03d
   MAX_RESOLUTION_LEVEL: 7
 MODEL:
   # LATENT_SPACE_SIZE: 256
