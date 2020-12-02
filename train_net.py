@@ -42,7 +42,7 @@ def train_net(gpu_id, args):
     logger.info("Running with config:\n{}".format(cfg))
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
 
-    train(cfg, rank, args.distributed, logger)
+    train(cfg, logger)
 
 
 if __name__ == '__main__':

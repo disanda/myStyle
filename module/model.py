@@ -16,7 +16,8 @@
 import torch
 from torch import nn
 import random
-from module.net import Generator, Mapping
+import module.losses as losses
+from module.net import Generator, Mapping, Discriminator
 import numpy as np
 
 
@@ -45,6 +46,12 @@ class Model(nn.Module):
             latent_size=latent_size,
             channels=channels)
 
+        self.discriminator = Discriminator(
+            startf=startf,
+            layer_count=layer_count,
+            maxf=maxf,
+            channels=channels)
+
         self.dlatent_avg = DLatent(latent_size, self.mapping.num_layers)
         self.latent_size = latent_size
         self.dlatent_avg_beta = dlatent_avg_beta
@@ -52,7 +59,7 @@ class Model(nn.Module):
         self.style_mixing_prob = style_mixing_prob
         self.truncation_cutoff = truncation_cutoff
 
-    def generate(self, lod, remove_blob=True, z=None, count=32):
+    def generate(self, lod, blend_factor, z=None, count=32, remove_blob=True):
         if z is None:
             z = torch.randn(count, self.latent_size)
         styles = self.mapping(z)
@@ -78,9 +85,31 @@ class Model(nn.Module):
             coefs = torch.where(layer_idx < self.truncation_cutoff, self.truncation_psi * ones, ones)
             styles = torch.lerp(self.dlatent_avg.buff.data, styles, coefs)
 
-        rec = self.generator.forward(styles, lod, remove_blob) # [-1 , 18, 512]
-        print(styles.shape)
+        rec = self.generator.forward(styles, lod, blend_factor, remove_blob) # [-1 , 18, 512]
         return rec
 
     def forward(self, x, lod, blend_factor, d_train):
-        return self.generate(x, lod, blend_factor, d_train)
+        if d_train:
+            with torch.no_grad():
+                rec = self.generate(lod, blend_factor, count=x.shape[0])
+            self.discriminator.requires_grad_(True)
+            d_result_real = self.discriminator(x, lod, blend_factor).squeeze()
+            d_result_fake = self.discriminator(rec.detach(), lod, blend_factor).squeeze()
+
+            loss_d = losses.discriminator_logistic_simple_gp(d_result_fake, d_result_real, x)
+            return loss_d
+        else:
+            rec = self.generate(lod, blend_factor, count=x.shape[0])
+            self.discriminator.requires_grad_(False)
+            d_result_fake = self.discriminator(rec, lod, blend_factor).squeeze()
+            loss_g = losses.generator_logistic_non_saturating(d_result_fake)
+            return loss_g
+
+    def lerp(self, other, betta):
+        if hasattr(other, 'module'):
+            other = other.module
+        with torch.no_grad():
+            params = list(self.mapping.parameters()) + list(self.generator.parameters()) + list(self.dlatent_avg.parameters())
+            other_param = list(other.mapping.parameters()) + list(other.generator.parameters()) + list(other.dlatent_avg.parameters())
+            for p, p_other in zip(params, other_param):
+                p.data.lerp_(p_other.data, 1.0 - betta)
