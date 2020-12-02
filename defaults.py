@@ -23,9 +23,9 @@ _C.PreModel = './pre-model/karras2019stylegan-ffhq.pth'
 _C.OUTPUT_DIR = "results"
 
 _C.DATASET = CN()
-_C.DATASET.PATH = 'celeba/data_fold_%d_lod_%d.pkl'
+_C.DATASET.PATH = './'
 _C.DATASET.PATH_TEST = ''
-_C.DATASET.FFHQ_SOURCE = '/data/datasets/ffhq-dataset/tfrecords/ffhq/ffhq-r%02d.tfrecords'
+_C.DATASET.FFHQ_SOURCE = '/datasets/ffhq-dataset/tfrecords/ffhq/ffhq-r%02d.tfrecords'
 _C.DATASET.PART_COUNT = 1
 _C.DATASET.SIZE = 70000
 

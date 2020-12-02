@@ -43,7 +43,7 @@ def prepare_celeba(cfg, logger):
         '016530.jpg',
     ]
 
-    #download.from_google_drive("0B7EVK8r0v71pZjFTYXZWM3FlRnM", directory=directory)
+    download.from_google_drive("0B7EVK8r0v71pZjFTYXZWM3FlRnM", directory=directory)
 
     def center_crop(x, crop_h=128, crop_w=None, resize_w=128):
         # crop the images to [crop_h,crop_w,3] then resize to [resize_h,resize_w,3]
@@ -54,7 +54,7 @@ def prepare_celeba(cfg, logger):
         i = int(round((w - crop_w)/2.))
         return misc.imresize(x[j:j+crop_h, i:i+crop_w], [resize_w, resize_w])
 
-    archive = zipfile.ZipFile(os.path.join(directory, '/data/datasets/CelebA/Img/img_align_celeba.zip'), 'r')
+    archive = zipfile.ZipFile(os.path.join(directory, '/datasets/CelebA/Img/img_align_celeba.zip'), 'r')
 
     names = archive.namelist()
 
