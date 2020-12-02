@@ -8,7 +8,7 @@ import logging
 from dlutils import download
 
 from scipy import misc
-sys.path.append('../module')
+sys.path.append('./module')
 from net import *
 import numpy as np
 import pickle
@@ -179,7 +179,7 @@ def run():
     parser = argparse.ArgumentParser(description="Adversarial, hierarchical style VAE")
     parser.add_argument(
         "--config-file",
-        default="./experiment_celeba.yaml",
+        default="../configs/experiment_celeba.yaml",
         metavar="FILE",
         help="path to config file",
         type=str,
