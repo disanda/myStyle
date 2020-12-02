@@ -4,7 +4,7 @@ from torchvision.utils import save_image
 import torch.cuda.comm
 import torch.cuda.nccl
 import dlutils.pytorch.count_parameters as count_param_override
-import module.lod_driver
+import module.lod_driver as lod_driver
 from dataUtils.dataloader import * #TFRecordsDataset,make_dataloader
 from module.model import Model
 from module.net import *
