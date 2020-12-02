@@ -302,7 +302,7 @@ class Generator(nn.Module):
 
         self.to_rgb = to_rgb
 
-    def decode(self, styles, lod, ,noise, remove_blob=True):
+    def decode(self, styles, lod, noise, remove_blob=True):
         x = self.const
         _x = None
         for i in range(lod + 1):
