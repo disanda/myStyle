@@ -8,6 +8,7 @@ import logging
 from dlutils import download
 
 from scipy import misc
+sys.path.append('../module')
 from net import *
 import numpy as np
 import pickle
