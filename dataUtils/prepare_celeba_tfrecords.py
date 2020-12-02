@@ -179,7 +179,7 @@ def run():
     parser = argparse.ArgumentParser(description="Adversarial, hierarchical style VAE")
     parser.add_argument(
         "--config-file",
-        default="configs/experiment_celeba.yaml",
+        default="./experiment_celeba.yaml",
         metavar="FILE",
         help="path to config file",
         type=str,
