@@ -1,7 +1,7 @@
 DATASET:
   PART_COUNT: 16
   SIZE: 202576
-  PATH: /datasets/celeba/tfrecords/celeba-r%02d.tfrecords.%03d
+  PATH: ./datasets/celeba/tfrecords/celeba-r%02d.tfrecords.%03d
   MAX_RESOLUTION_LEVEL: 7
 MODEL:
   # LATENT_SPACE_SIZE: 256
@@ -12,7 +12,7 @@ MODEL:
   DLATENT_AVG_BETA: 0.995
   # MAPPING_LAYERS: 5
   MAPPING_LAYERS: 8
-OUTPUT_DIR: /results/celeba128/
+OUTPUT_DIR: ./results/celeba128/
 TRAIN:
   BASE_LEARNING_RATE: 0.0015
   EPOCHS_PER_LOD: 6
