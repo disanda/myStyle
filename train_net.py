@@ -60,4 +60,4 @@ if __name__ == '__main__':
         type=str,
     )
     args = parser.parse_args()
-    train_net(gpu_id=0, args)
+    train_net(gpu_id=0, args=args)
