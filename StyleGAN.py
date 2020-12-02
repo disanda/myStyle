@@ -146,7 +146,7 @@ def train(cfg, logger, gpu_id=0):
     latents = rnd.randn(32, cfg.MODEL.LATENT_SPACE_SIZE)
     sample = torch.tensor(latents).float().cuda()
 
-    lod2batch = lod_driver.LODDriver(cfg, logger, dataset_size=len(dataset))
+    lod2batch = lod_driver.LODDriver(cfg, logger, gpu_num=1, dataset_size=len(dataset))
 
     for epoch in range(scheduler.start_epoch(), cfg.TRAIN.TRAIN_EPOCHS):
         model.train()
