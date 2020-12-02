@@ -286,7 +286,7 @@ class Generator(nn.Module):
             has_first_conv = i != 0
             fused_scale = resolution * 2 >= 128
 
-            block = DecodeBlock(inputs, outputs, latent_size, has_first_conv, fused_scale=fused_scale, layer=i)
+            block = DecodeBlock(inputs, outputs, latent_size, has_first_conv, fused_scale=fused_scale)
 
             resolution *= 2
             self.layer_to_resolution[i] = resolution
@@ -295,7 +295,7 @@ class Generator(nn.Module):
 
             to_rgb.append(ToRGB(outputs, channels))
 
-            #print("decode_block%d %s styles in: %dl out resolution: %d" % ((i + 1), millify(count_parameters(block)), outputs, resolution))
+            print("decode_block%d %s styles in: %dl out resolution: %d" % ((i + 1), millify(count_parameters(block)), outputs, resolution))
             self.decode_block.append(block)
             inputs = outputs
             mul //= 2
