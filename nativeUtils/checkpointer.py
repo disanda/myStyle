@@ -16,6 +16,8 @@
 import os
 from torch import nn
 import torch
+import sys
+sys.path.append('../native/')
 import utils
 
 

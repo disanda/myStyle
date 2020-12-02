@@ -19,10 +19,7 @@ import argparse
 import logging
 import torch
 from defaults import get_cfg_defaults
-import sys
-sys.path.append('stylegan')
-sys.path.append('stylegan/dnnlib')
-sys.path.append('tensor4/tensor4')
+sys.path.append('../stylegan')
 import dnnlib
 import dnnlib.tflib
 import dnnlib.tflib as tflib
