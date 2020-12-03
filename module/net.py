@@ -331,14 +331,14 @@ class Generator(nn.Module):
     #         x = torch.pow(x, 1.0/2.2)
     #         x = x.repeat(1, 3, 1, 1)
     #     return x
-    def decode(self, styles, lod, noise):
+    def decode(self, styles, lod, noise=0):
         x = self.const
         for i in range(lod+1):
             x = self.decode_block[i](x, styles[:, 2*i+0], styles[:,2*i+1])
         x = self.to_rgb[lod](x)
         return x
 
-    def decode2(self, styles, lod, blend, noise): #这步会完成图像混合
+    def decode2(self, styles, lod, blend, noise=0): #这步会完成图像混合
         x = self.const
 
         for i in range(lod):
