@@ -85,7 +85,7 @@ class Model(nn.Module):
             coefs = torch.where(layer_idx < self.truncation_cutoff, self.truncation_psi * ones, ones)
             styles = torch.lerp(self.dlatent_avg.buff.data, styles, coefs)
 
-        rec = self.generator.forward(styles, lod, blend_factor, remove_blob) # [-1 , 18, 512]
+        rec = self.generator.forward(styles, lod, blend_factor, remove_blob) # styles:[-1 , 18, 512]
         return rec
 
     def forward(self, x, lod, blend_factor, d_train):

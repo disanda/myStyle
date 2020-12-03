@@ -31,6 +31,7 @@ class WarmupMultiStepLR(torch.optim.lr_scheduler._LRScheduler):
         self.base_lrs = []
         for _ in self.optimizer.param_groups:
             self.base_lrs.append(lr)
+            print(self.base_lrs)
 
         self.last_epoch = last_epoch
 
@@ -53,7 +54,7 @@ class WarmupMultiStepLR(torch.optim.lr_scheduler._LRScheduler):
     def set_batch_size(self, batch_size, lod):
         self.batch_size = batch_size
         self.lod = lod
-        for param_group, lr in zip(self.optimizer.param_groups, self.get_lr()):
+        for param_group, lr in zip(self.optimizer.param_groups, self.get_lr()):  #!!!!!!!
             param_group['lr'] = lr
 
     def get_lr(self):
@@ -61,13 +62,23 @@ class WarmupMultiStepLR(torch.optim.lr_scheduler._LRScheduler):
         if self.last_epoch < self.warmup_iters:
             alpha = float(self.last_epoch) / self.warmup_iters
             warmup_factor = self.warmup_factor * (1 - alpha) + alpha
+
+        print([
+            base_lr[self.lod]
+            * warmup_factor
+            * self.gamma ** bisect_right(self.milestones, self.last_epoch)
+            # * float(self.batch_size)
+            # / float(self.reference_batch_size)
+            for base_lr in self.base_lrs  #!!!!!!!
+        ]
+)
         return [
             base_lr[self.lod]
             * warmup_factor
             * self.gamma ** bisect_right(self.milestones, self.last_epoch)
             # * float(self.batch_size)
             # / float(self.reference_batch_size)
-            for base_lr in self.base_lrs
+            for base_lr in self.base_lrs  #!!!!!!!
         ]
 
     def state_dict(self):
@@ -92,7 +103,7 @@ class ComboMultiStepLR:
 
     def set_batch_size(self, batch_size, lod):
         for x in self.schedulers.values():
-            x.set_batch_size(batch_size, lod)
+            x.set_batch_size(batch_size, lod) #!!!!!!!
 
     def step(self, epoch=None):
         for x in self.schedulers.values():
