@@ -67,7 +67,7 @@ _C.TRAIN.SNAPSHOT_FREQ = [300, 300, 300, 100, 50, 30, 20, 20, 10] #快照保存
 
 _C.TRAIN.REPORT_FREQ = [100, 80, 60, 30, 20, 10, 10, 5, 5] #报告保存
 
-_C.TRAIN.LEARNING_RATE = [0.002] #这个用于scheduler
+_C.TRAIN.LEARNING_RATES = [0.002] #这个用于scheduler
 
 def get_cfg_defaults():
     return _C.clone()
