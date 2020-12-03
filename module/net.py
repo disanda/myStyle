@@ -333,7 +333,7 @@ class Generator(nn.Module):
     #     return x
     def decode(self, styles, lod, noise):
         x = self.const
-        for i in range(log+1):
+        for i in range(lod+1):
             x = self.decode_block[i](x, styles[:, 2*i+0], styles[:,2*i+1])
         x = self.to_rgb[lod](x)
         return x
