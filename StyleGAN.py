@@ -109,7 +109,7 @@ def train(cfg, logger, gpu_id=0):
                                  },
                                  milestones=cfg.TRAIN.LEARNING_DECAY_STEPS, # []
                                  gamma=cfg.TRAIN.LEARNING_DECAY_RATE, # 0.1
-                                 reference_batch_size=32, base_lr=cfg.TRAIN.LEARNING_RATES) # 0.0015
+                                 reference_batch_size=32, base_lr=cfg.TRAIN.BASE_LEARNING_RATE) # 0.002
 
     model_dict = {
         'discriminator': discriminator,
@@ -138,7 +138,7 @@ def train(cfg, logger, gpu_id=0):
     checkpointer.load()
     logger.info("Starting from epoch: %d" % (scheduler.start_epoch()))
 
-    layer_to_resolution = generator.layer_to_resolution
+    layer_to_resolution = generator.layer_to_resolution #[4, 8, 16, 32, 64, 128]
 
     dataset = TFRecordsDataset(cfg, logger, buffer_size_mb=1024)
 
@@ -162,14 +162,14 @@ def train(cfg, logger, gpu_id=0):
                                                                 len(dataset)))
 
         dataset.reset(lod2batch.get_lod_power2(), lod2batch.get_per_GPU_batch_size())
-        batches = make_dataloader(cfg, logger, dataset, lod2batch.get_per_GPU_batch_size(), gpu_id)
+        batches = make_dataloader(cfg, logger, dataset, lod2batch.get_per_GPU_batch_size(), gpu_id) # 一个数据集分为多个batch,一个batch有n长图片
 
-        scheduler.set_batch_size(lod2batch.get_batch_size(), lod2batch.lod)
+        scheduler.set_batch_size(lod2batch.get_batch_size(), lod2batch.lod) #报错！
 
         need_permute = False
 
         with torch.autograd.profiler.profile(use_cuda=True, enabled=False) as prof:
-            for x_orig in tqdm(batches):
+            for x_orig in tqdm(batches): # x_orig:[-1,c,w,h]
 
                 with torch.no_grad():
                     if x_orig.shape[0] != lod2batch.get_per_GPU_batch_size():

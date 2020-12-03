@@ -31,8 +31,6 @@ class WarmupMultiStepLR(torch.optim.lr_scheduler._LRScheduler):
         self.base_lrs = []
         for _ in self.optimizer.param_groups:
             self.base_lrs.append(lr)
-        print('error-------------------1')
-        print(self.base_lrs)
 
         self.last_epoch = last_epoch
 
@@ -64,16 +62,8 @@ class WarmupMultiStepLR(torch.optim.lr_scheduler._LRScheduler):
             alpha = float(self.last_epoch) / self.warmup_iters
             warmup_factor = self.warmup_factor * (1 - alpha) + alpha
 
-        print('error-------------------2')
-        print([
-            base_lr[self.lod] * warmup_factor * self.gamma ** bisect_right(self.milestones, self.last_epoch)
-            # * float(self.batch_size)
-            # / float(self.reference_batch_size)
-            for base_lr in self.base_lrs  #!!!!!!!
-        ]
-)
         return [
-            base_lr[self.lod]* warmup_factor* self.gamma ** bisect_right(self.milestones, self.last_epoch)
+            base_lr[0]* warmup_factor* self.gamma ** bisect_right(self.milestones, self.last_epoch)
             # * float(self.batch_size)
             # / float(self.reference_batch_size)
             for base_lr in self.base_lrs  #!!!!!!!
