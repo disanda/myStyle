@@ -109,7 +109,7 @@ def train(cfg, logger, gpu_id=0):
                                  },
                                  milestones=cfg.TRAIN.LEARNING_DECAY_STEPS, # []
                                  gamma=cfg.TRAIN.LEARNING_DECAY_RATE, # 0.1
-                                 reference_batch_size=32, base_lr=cfg.TRAIN.BASE_LEARNING_RATE) # 0.002
+                                 reference_batch_size=32, base_lr=cfg.TRAIN.LEARNING_RATES) # 0.002
 
     model_dict = {
         'discriminator': discriminator,
