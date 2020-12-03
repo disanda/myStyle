@@ -304,32 +304,38 @@ class Generator(nn.Module):
 
         self.to_rgb = to_rgb
 
-    def decode(self, styles, lod, noise, remove_blob=True):
+    # def decode(self, styles, lod, noise, remove_blob=True):
+    #     x = self.const
+    #     _x = None
+    #     for i in range(lod + 1):
+    #         if i < 4 or not remove_blob:
+    #             x = self.decode_block[i].forward(x, styles[:, 2 * i + 0], styles[:, 2 * i + 1])
+    #             if remove_blob and i == 3:
+    #                 _x = x.clone()
+    #                 _x[x > 300.0] = 0
+
+    #             # plt.hist((torch.max(torch.max(_x, dim=2)[0], dim=2)[0]).cpu().flatten().numpy(), bins=300)
+    #             # plt.show()
+    #             # exit()
+    #         else:
+    #             x, _x = self.decode_block[i].forward_double(x, _x, styles[:, 2 * i + 0], styles[:, 2 * i + 1])
+
+    #     if _x is not None:
+    #         x = _x # 大于300的值被清零
+    #     if lod == 8:
+    #         x = self.to_rgb[lod](x)
+    #     else:
+    #         x = x.max(dim=1, keepdim=True)[0]
+    #         x = x - x.min()
+    #         x = x / x.max()
+    #         x = torch.pow(x, 1.0/2.2)
+    #         x = x.repeat(1, 3, 1, 1)
+    #     return x
+    def decode(self, styles, lod, noise):
         x = self.const
-        _x = None
-        for i in range(lod + 1):
-            if i < 4 or not remove_blob:
-                x = self.decode_block[i].forward(x, styles[:, 2 * i + 0], styles[:, 2 * i + 1])
-                if remove_blob and i == 3:
-                    _x = x.clone()
-                    _x[x > 300.0] = 0
-
-                # plt.hist((torch.max(torch.max(_x, dim=2)[0], dim=2)[0]).cpu().flatten().numpy(), bins=300)
-                # plt.show()
-                # exit()
-            else:
-                x, _x = self.decode_block[i].forward_double(x, _x, styles[:, 2 * i + 0], styles[:, 2 * i + 1])
-
-        if _x is not None:
-            x = _x # 大于300的值被清零
-        if lod == 8:
-            x = self.to_rgb[lod](x)
-        else:
-            x = x.max(dim=1, keepdim=True)[0]
-            x = x - x.min()
-            x = x / x.max()
-            x = torch.pow(x, 1.0/2.2)
-            x = x.repeat(1, 3, 1, 1)
+        for i in range(log+1):
+            x = self.decode_block[i](x, styles[:, 2*i+0], styles[:,2*i+1])
+        x = self.to_rgb[lod](x)
         return x
 
     def decode2(self, styles, lod, blend, noise): #这步会完成图像混合

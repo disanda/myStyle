@@ -1,8 +1,8 @@
 import os
 import sys
-import argparse
 import logging
 import torch
+import argparse
 from defaults import get_cfg_defaults
 from StyleGAN import train
 
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     #os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     #os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
-    parser = argparse.ArgumentParser(description="Adversarial, hierarchical style VAE")
+    parser = argparse.ArgumentParser(description="My Style")
     parser.add_argument(
         "--config-file",
         default="configs/experiment_celeba.yaml",

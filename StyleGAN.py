@@ -166,8 +166,6 @@ def train(cfg, logger, gpu_id=0):
 
         scheduler.set_batch_size(lod2batch.get_batch_size(), lod2batch.lod)
 
-        model.train()
-
         need_permute = False
 
         with torch.autograd.profiler.profile(use_cuda=True, enabled=False) as prof:
@@ -214,9 +212,6 @@ def train(cfg, logger, gpu_id=0):
                         checkpointer.save("model_tmp_intermediate")
                     if lod2batch.is_time_to_report():
                         save_sample(lod2batch, tracker, sample, x, logger, model_s, cfg, discriminator_optimizer, generator_optimizer)
-
-        #print(prof.key_averages().table(sort_by="self_cpu_time_total"))
-
         scheduler.step()
 
         if gpu_id == 0:
