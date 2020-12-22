@@ -33,7 +33,7 @@ def train():
 
 	loss_all=0
 	loss_mse = torch.nn.MSELoss()
-	loss_lpips = lpips.LPIPS(net='vgg').to(device)
+	loss_lpips = lpips.LPIPS(net='vgg').cuda()
 	#loss3 = torch.nn.KLDivLoss()
 
 	batch_size = 5
