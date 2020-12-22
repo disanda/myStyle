@@ -144,7 +144,7 @@ class DecodeBlock(nn.Module):
             x = self.conv_1(x)
             x = self.blur(x)
 
-        x = torch.addcmul(x, value=1.0, tensor1=self.noise_weight_1, tensor2=torch.randn([x.shape[0], 1, x.shape[2], x.shape[3]]))
+        x = torch.addcmul(x, value=1.0, tensor1=self.noise_weight_1, tensor2=torch.randn([x.shape[0], 1, x.shape[2], x.shape[3]]).to(x.device))
 
         x = x + self.bias_1
 
@@ -156,7 +156,7 @@ class DecodeBlock(nn.Module):
 
         x = self.conv_2(x)
 
-        x = torch.addcmul(x, value=1.0, tensor1=self.noise_weight_2, tensor2=torch.randn([x.shape[0], 1, x.shape[2], x.shape[3]]))
+        x = torch.addcmul(x, value=1.0, tensor1=self.noise_weight_2, tensor2=torch.randn([x.shape[0], 1, x.shape[2], x.shape[3]]).to(x.device))
 
         x = x + self.bias_2
 

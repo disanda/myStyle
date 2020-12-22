@@ -45,7 +45,7 @@ class BEBlock(nn.Module):
 
         x = self.instance_norm_1(x)
         x = F.leaky_relu(x, 0.2)
-        x = torch.addcmul(x, value=1.0, tensor1=self.noise_weight_1, tensor2=torch.randn([x.shape[0], 1, x.shape[2], x.shape[3]]))
+        x = torch.addcmul(x, value=1.0, tensor1=self.noise_weight_1, tensor2=torch.randn([x.shape[0], 1, x.shape[2], x.shape[3]]).to(x.device))
         x = self.conv_1(x)
 
         mean2 = torch.mean(x, dim=[2, 3], keepdim=True) # [b, c, 1, 1]
@@ -55,7 +55,7 @@ class BEBlock(nn.Module):
 
         x = self.instance_norm_2(x)
         x = F.leaky_relu(x, 0.2)
-        x = torch.addcmul(x, value=1.0, tensor1=self.noise_weight_2, tensor2=torch.randn([x.shape[0], 1, x.shape[2], x.shape[3]]))
+        x = torch.addcmul(x, value=1.0, tensor1=self.noise_weight_2, tensor2=torch.randn([x.shape[0], 1, x.shape[2], x.shape[3]]).to(x.device))
 
         if self.has_last_conv:
             x = self.blur(x)
