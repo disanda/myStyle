@@ -103,7 +103,7 @@ class BE(nn.Module):
                 w = w_ # [b,n,512]
             else:
                 w = torch.cat((w_,w),dim=1)
-            print(w.shape)
+            #print(w.shape)
         return x, w
 
     # 逆序w

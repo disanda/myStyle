@@ -46,7 +46,7 @@ def train():
 		const2,w2 = E(imgs1.cuda())
 
 		with torch.no_grad():
-			imgs2=Gs.forward(w2,8)
+			imgs2=Gs.forward(w2.to('cpu'),8)
 
 		E_optimizer.zero_grad()
 		loss_1 = loss_mse(imgs1,imgs2)
