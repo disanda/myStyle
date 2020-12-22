@@ -32,7 +32,7 @@ def train():
 
 	loss_all=0
 	loss_mse = torch.nn.MSELoss()
-	loss_lpips = lpips.LPIPS(net='vgg').cuda()
+	loss_lpips = lpips.LPIPS(net='vgg')
 	#loss3 = torch.nn.KLDivLoss()
 
 	batch_size = 5
@@ -44,18 +44,19 @@ def train():
 			imgs1 = Gs.forward(w1,8)
 
 		const2,w2 = E(imgs1.cuda())
+		w2 = w2.to('cpu')
 
 		with torch.no_grad():
-			imgs2=Gs.forward(w2.to('cpu'),8)
+			imgs2=Gs.forward(w2,8)
 
 		E_optimizer.zero_grad()
 		loss_1 = loss_mse(imgs1,imgs2)
-		loss_2_1 = loss_lpips(imgs1.cuda(),imgs2.cuda()).mean()
-		loss_2_2 = loss_lpips(imgs1.cuda(),imgs2.cuda()).std()
+		loss_2_1 = loss_lpips(imgs1,imgs2).mean()
+		loss_2_2 = loss_lpips(imgs1,imgs2).std()
 		loss_w_1 = loss_mse(w1,w2)
-		loss_w_2 = loss_lpips(w1.cuda(),w2).mean()
-		loss_w_3 = loss_lpips(w1.cuda(),w2).std()
-		loss_c = loss_mse(const1,const2)
+		loss_w_2 = loss_lpips(w1,w2).mean()
+		loss_w_3 = loss_lpips(w1,w2).std()
+		loss_c = loss_mse(const1,const2.to('cpu'))
 		loss_all = loss_1+ loss_2_1 + loss_2_2 + loss_w_1 + loss_w_2 + loss_w_3 + loss_c
 		loss_all.backward()
 		E_optimizer.step()
