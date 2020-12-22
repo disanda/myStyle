@@ -20,26 +20,26 @@ def train():
 	Gs.load_state_dict(torch.load('./pre-model/Gs_dict.pth'))
 	Gm = Mapping(num_layers=18, mapping_layers=8, latent_size=512, dlatent_size=512, mapping_fmaps=512)
 	Gm.load_state_dict(torch.load('./pre-model/Gm_dict.pth')) 
-	#Gs.cuda()
-	#Gm.cuda()
 	Gs.requires_grad_(False)
 	Gm.requires_grad_(False)
 	const1 = Gs.const
 	E = BE.BE()
+	Gs.cuda()
+	Gm.cuda()
 	E.cuda()
 
 	E_optimizer = LREQAdam([{'params': E.parameters()},], lr=0.0015, betas=(0.0, 0.99), weight_decay=0)
 
 	loss_all=0
 	loss_mse = torch.nn.MSELoss()
-	loss_lpips = lpips.LPIPS(net='vgg')
+	loss_lpips = lpips.LPIPS(net='vgg').to('gpu')
 	#loss3 = torch.nn.KLDivLoss()
 
-	batch_size = 5
+	batch_size = 8
 	for epoch in range(120000):
 		with torch.no_grad(): #这里需要生成图片和变量
 			set_seed(epoch%30000)
-			latents = torch.randn(batch_size, 512) #[32, 512]
+			latents = torch.randn(batch_size, 512).to('gpu') #[32, 512]
 			w1 = Gm(latents) #[batch_size,18,512]
 			imgs1 = Gs.forward(w1,8)
 
