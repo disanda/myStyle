@@ -32,14 +32,14 @@ def train():
 
 	loss_all=0
 	loss_mse = torch.nn.MSELoss()
-	loss_lpips = lpips.LPIPS(net='vgg').to('gpu')
+	loss_lpips = lpips.LPIPS(net='vgg').to('cuda')
 	#loss3 = torch.nn.KLDivLoss()
 
 	batch_size = 8
 	for epoch in range(120000):
 		with torch.no_grad(): #这里需要生成图片和变量
 			set_seed(epoch%30000)
-			latents = torch.randn(batch_size, 512).to('gpu') #[32, 512]
+			latents = torch.randn(batch_size, 512).to('cuda') #[32, 512]
 			w1 = Gm(latents) #[batch_size,18,512]
 			imgs1 = Gs.forward(w1,8)
 
