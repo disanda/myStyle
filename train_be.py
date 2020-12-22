@@ -1,22 +1,9 @@
 import os
-import sys
-import logging
 import torch
-import argparse
-from torchvision.utils import save_image
-import torch.cuda.comm
-import torch.cuda.nccl
-import dlutils.pytorch.count_parameters as count_param_override
-import module.lod_driver as lod_driver
-from dataUtils.dataloader import * #TFRecordsDataset,make_dataloader
-from module.model import Model
-from module.net import *
+import torchvision
+from module.net import * # Generator,Mapping
 import module.BE as BE
-import nativeUtils.utils as utils
-from nativeUtils.scheduler import ComboMultiStepLR
 from module.custom_adam import LREQAdam
-from tqdm import tqdm
-from defaults import get_cfg_defaults
 import lpips
 torch.backends.cudnn.benchmark = True
 torch.backends.cudnn.enabled = True
@@ -30,7 +17,7 @@ def set_seed(seed): #随机数设置
 	torch.backends.cudnn.deterministic = True
 
 def train():
-	Gs = gs.Generator(startf=16, maxf=512, layer_count=9, latent_size=512, channels=3)
+	Gs = Generator(startf=16, maxf=512, layer_count=9, latent_size=512, channels=3)
 	Gs.load_state_dict(torch.load('./pre-model/Gs_dict.pth'))
 	Gm = Mapping(num_layers=18, mapping_layers=8, latent_size=512, dlatent_size=512, mapping_fmaps=512)
 	Gm.load_state_dict(torch.load('./pre-model/Gm_dict.pth')) 
@@ -75,14 +62,14 @@ def train():
 		E_optimizer.step()
 
 		print('loss_all__:'+str(loss_all.item())+'--loss_1:'+str(loss_1.item())+'--loss_2_1:'+str(loss_2_1.item())+'--loss_2_2:'+str(loss_2_2.item())+'--loss_c:'+str(loss_c.item()))
-		print('loss_w_1:'+str(loss_w_1.item())+'--loss_w_2:'+str(loss_w_2.item())+'--loss_w_3:'+str(loss_w_3.item())+'--loss_w_2:'+str(loss_w_3.item()))
-		if i % 100 == 0:
+		print('i_'+str(epoch)+'loss_w_1:'+str(loss_w_1.item())+'--loss_w_2:'+str(loss_w_2.item())+'--loss_w_3:'+str(loss_w_3.item())+'--loss_w_2:'+str(loss_w_3.item()))
+		if epoch % 100 == 0:
 			test_img = torch.cat((imgs1[:3],imgs2[:3]))*0.5+0.5
-			torchvision.utils.save_image(test_img, resultPath1_1+'/ep%d_%d.jpg'%(epoch,i), nrow=3)
+			torchvision.utils.save_image(test_img, resultPath1_1+'/ep%d.jpg'%(epoch), nrow=3)
 			with open(resultPath+'/Loss.txt', 'a+') as f:
 				print('loss_all__:'+str(loss_all.item())+'--loss_1:'+str(loss_1.item())+'--loss_2_1:'+str(loss_2_1.item())+'--loss_2_2:'+str(loss_2_2.item())+'--loss_c:'+str(loss_c.item()),file=f)
 				print('loss_w_1:'+str(loss_w_1.item())+'--loss_w_2:'+str(loss_w_2.item())+'--loss_w_3:'+str(loss_w_3.item())+'--loss_w_2:'+str(loss_w_3.item()),file=f)
-			if i % 1000 == 0:
+			if epoch % 1000 == 0:
 				torch.save(E.state_dict(), resultPath1_2+'/E_model_ep%d.pth'%epoch)
 
 if __name__ == "__main__":
