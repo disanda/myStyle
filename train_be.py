@@ -44,7 +44,6 @@ def train():
 			imgs1 = Gs.forward(w1,8)
 
 		const2,w2 = E(imgs1.cuda())
-		w2 = w2.to('cpu')
 
 		with torch.no_grad():
 			imgs2=Gs.forward(w2,8)
