@@ -22,11 +22,11 @@ def train():
 	Gm.load_state_dict(torch.load('./pre-model/Gm_dict.pth')) 
 	Gs.requires_grad_(False)
 	Gm.requires_grad_(False)
-	const1 = Gs.const
 	E = BE.BE()
 	Gs.cuda()
 	Gm.cuda()
 	E.cuda()
+	const1 = Gs.const
 
 	E_optimizer = LREQAdam([{'params': E.parameters()},], lr=0.0015, betas=(0.0, 0.99), weight_decay=0)
 
@@ -52,13 +52,13 @@ def train():
 		loss_1 = loss_mse(imgs1,imgs2)
 		loss_2_1 = loss_lpips(imgs1,imgs2).mean()
 		loss_2_2 = loss_lpips(imgs1,imgs2).std()
+		loss_c = loss_mse(const1,const2)
 		#loss_w = loss_mse(w1,w2)
-		#loss_c = loss_mse(const1,const2.to('cpu'))
-		loss_all = loss_1+ loss_2_1 + loss_2_2
+		loss_all = loss_1+ loss_2_1 + loss_2_2 + loss_c
 		loss_all.backward()
 		E_optimizer.step()
 
-		print('i_'+str(epoch)+'loss_all__:'+str(loss_all.item())+'--loss_1:'+str(loss_1.item())+'--loss_2_1:'+str(loss_2_1.item())+'--loss_2_2:'+str(loss_2_2.item()))
+		print('i_'+str(epoch)+'loss_all__:'+str(loss_all.item())+'--loss_1:'+str(loss_1.item())+'--loss_2_1:'+str(loss_2_1.item())+'--loss_2_2:'+str(loss_2_2.item())+'--loss_c:'+str(loss_c.item()))
 		#print('loss_w_1:'+str(loss_w_1.item())+'--loss_w_2:'+str(loss_w_2.item())+'--loss_w_3:'+str(loss_w_3.item())+'--loss_w_2:'+str(loss_w_3.item()))
 		if epoch % 100 == 0:
 			test_img = torch.cat((imgs1[:3],imgs2[:3]))*0.5+0.5
