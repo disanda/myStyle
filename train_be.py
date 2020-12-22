@@ -35,7 +35,7 @@ def train():
 	loss_lpips = lpips.LPIPS(net='vgg').to('cuda')
 	#loss3 = torch.nn.KLDivLoss()
 
-	batch_size = 5
+	batch_size = 6
 	for epoch in range(120000):
 		with torch.no_grad(): #这里需要生成图片和变量
 			set_seed(epoch%30000)
@@ -58,15 +58,15 @@ def train():
 		loss_all.backward()
 		E_optimizer.step()
 
-		print('loss_all__:'+str(loss_all.item())+'--loss_1:'+str(loss_1.item())+'--loss_2_1:'+str(loss_2_1.item())+'--loss_2_2:'+str(loss_2_2.item()))
-		#print('i_'+str(epoch)+'loss_w_1:'+str(loss_w_1.item())+'--loss_w_2:'+str(loss_w_2.item())+'--loss_w_3:'+str(loss_w_3.item())+'--loss_w_2:'+str(loss_w_3.item()))
+		print('i_'+str(epoch)+'loss_all__:'+str(loss_all.item())+'--loss_1:'+str(loss_1.item())+'--loss_2_1:'+str(loss_2_1.item())+'--loss_2_2:'+str(loss_2_2.item()))
+		#print('loss_w_1:'+str(loss_w_1.item())+'--loss_w_2:'+str(loss_w_2.item())+'--loss_w_3:'+str(loss_w_3.item())+'--loss_w_2:'+str(loss_w_3.item()))
 		if epoch % 100 == 0:
 			test_img = torch.cat((imgs1[:3],imgs2[:3]))*0.5+0.5
 			torchvision.utils.save_image(test_img, resultPath1_1+'/ep%d.jpg'%(epoch), nrow=3)
 			with open(resultPath+'/Loss.txt', 'a+') as f:
-				print('loss_all__:'+str(loss_all.item())+'--loss_1:'+str(loss_1.item())+'--loss_2_1:'+str(loss_2_1.item())+'--loss_2_2:'+str(loss_2_2.item()),file=f)
+				print('i_'+str(epoch)+'loss_all__:'+str(loss_all.item())+'--loss_1:'+str(loss_1.item())+'--loss_2_1:'+str(loss_2_1.item())+'--loss_2_2:'+str(loss_2_2.item()),file=f)
 				#print('loss_w_1:'+str(loss_w_1.item())+'--loss_w_2:'+str(loss_w_2.item())+'--loss_w_3:'+str(loss_w_3.item())+'--loss_w_2:'+str(loss_w_3.item()),file=f)
-			if epoch % 1000 == 0:
+			if epoch % 10000 == 0:
 				torch.save(E.state_dict(), resultPath1_2+'/E_model_ep%d.pth'%epoch)
 
 if __name__ == "__main__":
