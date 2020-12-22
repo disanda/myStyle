@@ -3,7 +3,7 @@ import math
 import time
 from collections import defaultdict
 
-
+#一个可以返回各类训练参数(param)的对象
 class LODDriver:
     def __init__(self, cfg, logger, gpu_num, dataset_size):
         if gpu_num == 8:
@@ -78,7 +78,7 @@ class LODDriver:
         self.tick_start_nimg_snapshot = 0
         self.epoch_start_time = time.time()
 
-        new_lod = min(self.cfg.MODEL.LAYER_COUNT - 1, epoch // self.cfg.TRAIN.EPOCHS_PER_LOD) #最小是0
+        new_lod = min(self.cfg.MODEL.LAYER_COUNT - 1, epoch // self.cfg.TRAIN.EPOCHS_PER_LOD) #最小是0,提升lod即分辨率
         if new_lod != self.lod:
             self.lod = new_lod
             self.logger.info("#" * 80)

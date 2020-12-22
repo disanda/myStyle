@@ -1,18 +1,3 @@
-# Copyright 2019 Stanislav Pidhorskyi
-# 
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-# 
-#  http://www.apache.org/licenses/LICENSE-2.0
-# 
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ==============================================================================
-
 import os
 import torch
 from torch import nn
@@ -43,8 +28,8 @@ def pixel_norm(x, epsilon=1e-8):
 
 
 def style_mod(x, style):
-    style = style.view(style.shape[0], 2, x.shape[1], 1, 1)
-    return torch.addcmul(style[:, 1], value=1.0, tensor1=x, tensor2=style[:, 0] + 1)
+    style = style.view(style.shape[0], 2, x.shape[1], 1, 1) # [n,1024] -> [n,2,512,1,1]
+    return torch.addcmul(style[:, 1], value=1.0, tensor1=x, tensor2=style[:, 0] + 1) # style1 + x*style2
 
 
 def upscale2d(x, factor=2):
@@ -58,18 +43,28 @@ def upscale2d(x, factor=2):
 def downscale2d(x, factor=2):
     return F.avg_pool2d(x, factor, factor)
 
-class Blur(nn.Module):
+class Blur(nn.Module): #将每一个特征图[h,w]按照卷积核的比例进行缩放，即根据卷积核中心点实现数据集中，但周围模糊. 且能将值压缩一定比例
     def __init__(self, channels):
         super(Blur, self).__init__()
         f = np.array([1, 2, 1], dtype=np.float32)
-        f = f[:, np.newaxis] * f[np.newaxis, :]
+        f = f[:, np.newaxis] * f[np.newaxis, :] # size: [3,1]*[1,3] =  [3,3] , 中间大，两头小
         f /= np.sum(f)
-        kernel = torch.Tensor(f).view(1, 1, 3, 3).repeat(channels, 1, 1, 1)
+        kernel = torch.Tensor(f).view(1, 1, 3, 3).repeat(channels, 1, 1, 1) # [channels, 1, 3, 3] 
         self.register_buffer('weight', kernel)
         self.groups = channels
-
     def forward(self, x):
         return F.conv2d(x, weight=self.weight, groups=self.groups, padding=1)
+
+def minibatch_stddev_layer(x, group_size=4):
+    group_size = min(group_size, x.shape[0])
+    size = x.shape[0]
+    if x.shape[0] % group_size != 0:
+        x = torch.cat([x, x[:(group_size - (x.shape[0] % group_size)) % group_size]])
+    y = x.view(group_size, -1, x.shape[1], x.shape[2], x.shape[3])
+    y = y - y.mean(dim=0, keepdim=True)
+    y = torch.sqrt((y**2).mean(dim=0) + 1e-8).mean(dim=[1, 2, 3], keepdim=True)
+    y = y.repeat(group_size, 1, x.shape[2], x.shape[3])
+    return torch.cat([x, y], dim=1)[:size]
 
 class DiscriminatorBlock(nn.Module):
     def __init__(self, inputs, outputs, last=False, fused_scale=True):
@@ -108,7 +103,7 @@ class DiscriminatorBlock(nn.Module):
                 x = downscale2d(x)
             x = x + self.bias_2
         x = F.leaky_relu(x, 0.2)
-
+# 最后一层只有1个conv，加 minibatch_stddev,其他层有两个conv
         return x
 
 class DecodeBlock(nn.Module):
@@ -267,10 +262,10 @@ class Generator(nn.Module):
         self.channels = channels
         self.latent_size = latent_size
 
-        mul = 2**(self.layer_count-1)
+        mul = 2**(self.layer_count-1) # mul =  4, 8, 16, 32 ... | layer_count=6 -> 128*128
 
         inputs = min(self.maxf, startf * mul)
-        self.const = Parameter(torch.Tensor(1, inputs, 4, 4))
+        self.const = Parameter(torch.Tensor(1, inputs, 4, 4)) #[1,512,4,4]
         self.zeros = torch.zeros(1, 1, 1, 1)
         init.ones_(self.const)
 
@@ -285,10 +280,10 @@ class Generator(nn.Module):
         for i in range(self.layer_count):
             outputs = min(self.maxf, startf * mul)
 
-            has_first_conv = i != 0
+            has_first_conv = i != 0 # i=0 -> False i!= -> Ture
             fused_scale = resolution * 2 >= 128
 
-            block = DecodeBlock(inputs, outputs, latent_size, has_first_conv, fused_scale=fused_scale)
+            block = DecodeBlock(inputs, outputs, latent_size, has_first_conv, fused_scale=fused_scale) 
 
             resolution *= 2
             self.layer_to_resolution[i] = resolution
@@ -297,40 +292,41 @@ class Generator(nn.Module):
 
             to_rgb.append(ToRGB(outputs, channels))
 
-            print("decode_block%d %s styles in: %dl out resolution: %d" % ((i + 1), millify(count_parameters(block)), outputs, resolution))
+            #print("decode_block%d %s styles in: %dl out resolution: %d" % ((i + 1), millify(count_parameters(block)), outputs, resolution)) #输出参数大小
             self.decode_block.append(block)
             inputs = outputs
-            mul //= 2
+            mul //= 2 #逐渐递减到 1 
 
         self.to_rgb = to_rgb
 
-    # def decode(self, styles, lod, noise, remove_blob=True):
-    #     x = self.const
-    #     _x = None
-    #     for i in range(lod + 1):
-    #         if i < 4 or not remove_blob:
-    #             x = self.decode_block[i].forward(x, styles[:, 2 * i + 0], styles[:, 2 * i + 1])
-    #             if remove_blob and i == 3:
-    #                 _x = x.clone()
-    #                 _x[x > 300.0] = 0
+    def decode3(self, styles, lod, noise, remove_blob=True): #这个模块步更新梯度，仅能用去去除blob
+        x = self.const
+        _x = None
+        for i in range(lod + 1):
+            if i < 4 or not remove_blob:
+                x = self.decode_block[i].forward(x, styles[:, 2 * i + 0], styles[:, 2 * i + 1])
+                if remove_blob and i == 3:
+                    _x = x.clone()
+                    _x[x > 300.0] = 0
 
-    #             # plt.hist((torch.max(torch.max(_x, dim=2)[0], dim=2)[0]).cpu().flatten().numpy(), bins=300)
-    #             # plt.show()
-    #             # exit()
-    #         else:
-    #             x, _x = self.decode_block[i].forward_double(x, _x, styles[:, 2 * i + 0], styles[:, 2 * i + 1])
+                # plt.hist((torch.max(torch.max(_x, dim=2)[0], dim=2)[0]).cpu().flatten().numpy(), bins=300)
+                # plt.show()
+                # exit()
+            else:
+                x, _x = self.decode_block[i].forward_double(x, _x, styles[:, 2 * i + 0], styles[:, 2 * i + 1])
 
-    #     if _x is not None:
-    #         x = _x # 大于300的值被清零
-    #     if lod == 8:
-    #         x = self.to_rgb[lod](x)
-    #     else:
-    #         x = x.max(dim=1, keepdim=True)[0]
-    #         x = x - x.min()
-    #         x = x / x.max()
-    #         x = torch.pow(x, 1.0/2.2)
-    #         x = x.repeat(1, 3, 1, 1)
-    #     return x
+        if _x is not None:
+            x = _x # 大于300的值被清零
+        if lod == 8:
+            x = self.to_rgb[lod](x)
+        else:
+            x = x.max(dim=1, keepdim=True)[0]
+            x = x - x.min()
+            x = x / x.max()
+            x = torch.pow(x, 1.0/2.2)
+            x = x.repeat(1, 3, 1, 1)
+        return x
+
     def decode(self, styles, lod, noise=0):
         x = self.const
         for i in range(lod+1):
@@ -356,22 +352,14 @@ class Generator(nn.Module):
 
         return x
 
-    def forward(self, styles, lod, blend, remove_blob=True):
+    def forward(self, styles, lod, blend=1, remove_blob=False):
+        if remove_blob == True:
+            return self.decode3(styles, lod, 1)
         if blend == 1:
             return self.decode(styles, lod, 1)
-        else:
+        else: #blend<1,混合
             return self.decode2(styles, lod, blend)
 
-def minibatch_stddev_layer(x, group_size=4):
-    group_size = min(group_size, x.shape[0])
-    size = x.shape[0]
-    if x.shape[0] % group_size != 0:
-        x = torch.cat([x, x[:(group_size - (x.shape[0] % group_size)) % group_size]])
-    y = x.view(group_size, -1, x.shape[1], x.shape[2], x.shape[3])
-    y = y - y.mean(dim=0, keepdim=True)
-    y = torch.sqrt((y**2).mean(dim=0) + 1e-8).mean(dim=[1, 2, 3], keepdim=True)
-    y = y.repeat(group_size, 1, x.shape[2], x.shape[3])
-    return torch.cat([x, y], dim=1)[:size]
 
 class Discriminator(nn.Module):
     def __init__(self, startf=32, maxf=256, layer_count=3, channels=3):
@@ -399,7 +387,7 @@ class Discriminator(nn.Module):
 
             resolution //= 2
 
-            print("encode_block%d %s" % ((i + 1), millify(count_parameters(block))))
+            #print("encode_block%d %s" % ((i + 1), millify(count_parameters(block))))
             self.encode_block.append(block)
             inputs = outputs
             mul *= 2
@@ -441,7 +429,7 @@ class Discriminator(nn.Module):
 
 
 class MappingBlock(nn.Module):
-    def __init__(self, inputs, output, lrmul):
+    def __init__(self, inputs, output, lrmul=0.01):
         super(MappingBlock, self).__init__()
         self.fc = ln.Linear(inputs, output, lrmul=lrmul)
 
@@ -450,11 +438,11 @@ class MappingBlock(nn.Module):
         return x
 
 class Mapping(nn.Module):
-    def __init__(self, num_layers, mapping_layers=5, latent_size=256, dlatent_size=256, mapping_fmaps=256):
+    def __init__(self, num_layers=18, mapping_layers=8, latent_size=512, dlatent_size=512, mapping_fmaps=512):
         super(Mapping, self).__init__()
         inputs = latent_size
         self.mapping_layers = mapping_layers
-        self.num_layers = num_layers
+        self.num_layers = num_layers #映射的扩充的层数，由1层 扩充到 2*9 = 18层
         for i in range(mapping_layers):
             outputs = dlatent_size if i == mapping_layers - 1 else mapping_fmaps
             block = MappingBlock(inputs, outputs, lrmul=0.01)

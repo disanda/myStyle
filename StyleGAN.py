@@ -18,7 +18,7 @@ from defaults import get_cfg_defaults
 
 torch.backends.cudnn.benchmark = True
 torch.backends.cudnn.enabled = True
-
+#训练函数 和 保存图像函数
 
 def save_sample(lod2batch, tracker, sample, x, logger, model, cfg, discriminator_optimizer, generator_optimizer):
     os.makedirs('results', exist_ok=True)
@@ -95,18 +95,13 @@ def train(cfg, logger, gpu_id=0):
 
     generator_optimizer = LREQAdam([
         {'params': generator.parameters()},
-        {'params': mapping.parameters()}
-    ], lr=cfg.TRAIN.BASE_LEARNING_RATE, betas=(cfg.TRAIN.ADAM_BETA_0, cfg.TRAIN.ADAM_BETA_1), weight_decay=0)
+        {'params': mapping.parameters()}], lr=cfg.TRAIN.BASE_LEARNING_RATE, betas=(cfg.TRAIN.ADAM_BETA_0, cfg.TRAIN.ADAM_BETA_1), weight_decay=0)
 
     discriminator_optimizer = LREQAdam([
         {'params': discriminator.parameters()},
     ], lr=cfg.TRAIN.BASE_LEARNING_RATE, betas=(cfg.TRAIN.ADAM_BETA_0, cfg.TRAIN.ADAM_BETA_1), weight_decay=0)
 
-    scheduler = ComboMultiStepLR(optimizers=
-                                 {
-                                    'generator': generator_optimizer,
-                                    'discriminator': discriminator_optimizer
-                                 },
+    scheduler = ComboMultiStepLR(optimizers={'generator': generator_optimizer,'discriminator': discriminator_optimizer},
                                  milestones=cfg.TRAIN.LEARNING_DECAY_STEPS, # []
                                  gamma=cfg.TRAIN.LEARNING_DECAY_RATE, # 0.1
                                  reference_batch_size=32, base_lr=cfg.TRAIN.LEARNING_RATES) # 0.002
@@ -146,7 +141,7 @@ def train(cfg, logger, gpu_id=0):
     latents = rnd.randn(32, cfg.MODEL.LATENT_SPACE_SIZE)
     sample = torch.tensor(latents).float().cuda()
 
-    lod2batch = lod_driver.LODDriver(cfg, logger, gpu_num=1, dataset_size=len(dataset))
+    lod2batch = lod_driver.LODDriver(cfg, logger, gpu_num=1, dataset_size=len(dataset)) #一个可以返回各类训练参数(param)的对象
 
     for epoch in range(scheduler.start_epoch(), cfg.TRAIN.TRAIN_EPOCHS):
         model.train()

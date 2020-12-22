@@ -1,23 +1,20 @@
 import unittest
 import tempfile
-import checkpointer
+import nativeUtils.checkpointer as checkpointer
 import torch
 from torch import nn
 import logging
 import os
 import copy
-from dataloader import TFRecordsDataset, make_dataloader
+from dataUtils.dataloader import TFRecordsDataset, make_dataloader
 import pickle
-
 
 class DummyNetwork(nn.Module):
     def __init__(self):
         super(DummyNetwork, self).__init__()
         self.layer = nn.Linear(10, 10)
-
     def forward(self, x):
         return self.layer(x)
-
 
 class Cfg:
     def __init__(self):
@@ -28,7 +25,6 @@ class Cfg:
         self.DATASET.FFHQ_SOURCE = '/data/datasets/ffhq-dataset/tfrecords/ffhq/ffhq-r%02d.tfrecords'
         self.DATASET.PATH = '/data/datasets/ffhq-dataset/tfrecords/ffhq/splitted/ffhq-r%02d.tfrecords.%03d'
         self.DATASET.MAX_RESOLUTION_LEVEL = 10
-
 
 class CheckpointerTest(unittest.TestCase):
     def test_initialization_loading_saving(self):

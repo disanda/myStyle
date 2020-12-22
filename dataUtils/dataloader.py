@@ -22,20 +22,15 @@ class TFRecordsDataset:
     def __init__(self, cfg, logger, rank=0, buffer_size_mb=200):
         self.cfg = cfg
         self.logger = logger
-        self.rank = rank
-        self.last_data = ""
-        self.part_count = cfg.DATASET.PART_COUNT
         self.part_size = cfg.DATASET.SIZE // cfg.DATASET.PART_COUNT
-        self.workers = []
-        self.workers_active = 0
         self.iterator = None
         self.filenames = {}
         self.batch_size = 512
         self.features = {}
+        self.rank = rank #一次执行几个文件块
+        self.part_count_local = cfg.DATASET.PART_COUNT
+        assert self.part_count_local % 1 == 0
 
-        assert self.part_count % 1 == 0
-
-        self.part_count_local = cfg.DATASET.PART_COUNT // 1
 
         for r in range(2, cfg.DATASET.MAX_RESOLUTION_LEVEL + 1):
             files = []
