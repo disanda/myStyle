@@ -53,6 +53,8 @@ def train():
 		loss_1 = loss_mse(imgs1,imgs2)
 		loss_2_1 = loss_lpips(imgs1,imgs2).mean()
 		loss_2_2 = loss_lpips(imgs1,imgs2).std()
+		print(w1.shape)
+		print(w2.shape)
 		loss_w_1 = loss_mse(w1,w2)
 		loss_w_2 = loss_lpips(w1,w2).mean()
 		loss_w_3 = loss_lpips(w1,w2).std()
