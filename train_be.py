@@ -33,6 +33,7 @@ def train():
 	loss_all=0
 	loss_mse = torch.nn.MSELoss()
 	loss_lpips = lpips.LPIPS(net='vgg').to('cuda')
+	loss_kl = torch.nn.KLDivLoss()
 	#loss3 = torch.nn.KLDivLoss()
 
 	batch_size = 7
@@ -54,17 +55,23 @@ def train():
 		loss_2_2 = loss_lpips(imgs1,imgs2).std()
 		loss_c = loss_mse(const1,const2) #没有这个const，梯度起初没法快速下降，很可能无法收敛，
 		#loss_w = loss_mse(w1,w2)
-		loss_all = loss_1+ loss_2_1 + loss_2_2 + loss_c
+
+		y1, y2 = torch.nn.functional.softmax(const1),torch.nn.functional.softmax(const2)
+		loss_kl_c = loss_kl(torch.log(y1),y2)
+		loss_kl_c = torch.where(torch.isnan(loss_kl_c),torch.full_like(loss_kl_c,0), loss_kl_c)
+		loss_kl_c = torch.where(torch.isinf(loss_kl_c),torch.full_like(loss_kl_c,1), loss_kl_c)
+
+		loss_all = loss_1+ loss_2_1 + loss_2_2 + loss_c+loss_kl_c
 		loss_all.backward()
 		E_optimizer.step()
 
-		print('i_'+str(epoch)+'loss_all__:'+str(loss_all.item())+'--loss_1:'+str(loss_1.item())+'--loss_2_1:'+str(loss_2_1.item())+'--loss_2_2:'+str(loss_2_2.item())+'--loss_c:'+str(loss_c.item()))
+		print('i_'+str(epoch)+'loss_all__:'+str(loss_all.item())+'--loss_1:'+str(loss_1.item())+'--loss_2_1:'+str(loss_2_1.item())+'--loss_2_2:'+str(loss_2_2.item())+'--loss_c:'+str(loss_c.item())+'--loss_kl_c:'+str(loss_kl_c.item()))
 		#print('loss_w_1:'+str(loss_w_1.item())+'--loss_w_2:'+str(loss_w_2.item())+'--loss_w_3:'+str(loss_w_3.item())+'--loss_w_2:'+str(loss_w_3.item()))
 		if epoch % 100 == 0:
 			test_img = torch.cat((imgs1[:3],imgs2[:3]))*0.5+0.5
 			torchvision.utils.save_image(test_img, resultPath1_1+'/ep%d.jpg'%(epoch), nrow=3)
 			with open(resultPath+'/Loss.txt', 'a+') as f:
-				print('i_'+str(epoch)+'loss_all__:'+str(loss_all.item())+'--loss_1:'+str(loss_1.item())+'--loss_2_1:'+str(loss_2_1.item())+'--loss_2_2:'+str(loss_2_2.item())+'--loss_c:'+str(loss_c.item()),file=f)
+				print('i_'+str(epoch)+'loss_all__:'+str(loss_all.item())+'--loss_1:'+str(loss_1.item())+'--loss_2_1:'+str(loss_2_1.item())+'--loss_2_2:'+str(loss_2_2.item())+'--loss_c:'+str(loss_c.item())+'--loss_kl_c:'+str(loss_kl_c.item()),file=f)
 				#print('loss_w_1:'+str(loss_w_1.item())+'--loss_w_2:'+str(loss_w_2.item())+'--loss_w_3:'+str(loss_w_3.item())+'--loss_w_2:'+str(loss_w_3.item()),file=f)
 			if epoch % 10000 == 0:
 				torch.save(E.state_dict(), resultPath1_2+'/E_model_ep%d.pth'%epoch)
