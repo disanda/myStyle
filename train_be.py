@@ -20,8 +20,8 @@ def train():
 	Gs.load_state_dict(torch.load('./pre-model/Gs_dict.pth'))
 	Gm = Mapping(num_layers=18, mapping_layers=8, latent_size=512, dlatent_size=512, mapping_fmaps=512)
 	Gm.load_state_dict(torch.load('./pre-model/Gm_dict.pth')) 
-	Gs.cuda()
-	Gm.cuda()
+	#Gs.cuda()
+	#Gm.cuda()
 	Gs.requires_grad_(False)
 	Gm.requires_grad_(False)
 	const1 = Gs.const
@@ -39,22 +39,22 @@ def train():
 	for epoch in range(120000):
 		with torch.no_grad(): #这里需要生成图片和变量
 			set_seed(epoch%30000)
-			latents = torch.randn(batch_size, 512).cuda() #[32, 512]
-			w1 = Gm(latents ) #[batch_size,18,512]
+			latents = torch.randn(batch_size, 512) #[32, 512]
+			w1 = Gm(latents) #[batch_size,18,512]
 			imgs1 = Gs.forward(w1,8)
 
-		const2,w2 = E(imgs)
+		const2,w2 = E(imgs1.cuda())
 
 		with torch.no_grad():
-			imgs2=Gs.forward(w2,8)
+			imgs2=Gs.forward(w2.cpu(),8)
 
 		E_optimizer.zero_grad()
 		loss_1 = loss_mse(imgs1,imgs2)
-		loss_2_1 = loss_lpips(imgs1,imgs2).mean()
-		loss_2_2 = loss_lpips(imgs1,imgs2).std()
+		loss_2_1 = loss_lpips(imgs1.cuda(),imgs2.cuda()).mean()
+		loss_2_2 = loss_lpips(imgs1.cuda(),imgs2.cuda()).std()
 		loss_w_1 = loss_mse(w1,w2)
-		loss_w_2 = loss_lpips(w1,w2).mean()
-		loss_w_3 = loss_lpips(w1,w2).std()
+		loss_w_2 = loss_lpips(w1.cuda(),w2).mean()
+		loss_w_3 = loss_lpips(w1.cuda(),w2).std()
 		loss_c = loss_mse(const1,const2)
 		loss_all = loss_1+ loss_2_1 + loss_2_2 + loss_w_1 + loss_w_2 + loss_w_3 + loss_c
 		loss_all.backward()
