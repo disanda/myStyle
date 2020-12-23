@@ -53,12 +53,12 @@ def train():
 		loss_img_lpips = loss_lpips(imgs1,imgs2).mean()
 
 		loss_c = loss_mse(const1,const2) #没有这个const，梯度起初没法快速下降，很可能无法收敛，
-		loss_c_m = loss_mse(const1.mean(dim=0),const2.mean(dim=0))
-		loss_c_s = loss_mse(const1.std(dim=0),const2.std(dim=0))
+		loss_c_m = loss_mse(const1.mean(),const2.mean())
+		loss_c_s = loss_mse(const1.std(),const2.std())
 
 		loss_w = loss_mse(w1,w2)
-		loss_w_m = loss_mse(w1.mean(dim=0),w2.mean(dim=0))
-		loss_w_s = loss_mse(w1.std(dim=0),w2.std(dim=0))
+		loss_w_m = loss_mse(w1.mean(),w2.mean())
+		loss_w_s = loss_mse(w1.std(),w2.std())
 
 		y1, y2 = torch.nn.functional.softmax(const1),torch.nn.functional.softmax(const2)
 		loss_kl_c = loss_kl(torch.log(y1),y2)
