@@ -117,7 +117,7 @@ class BE(nn.Module):
                 w = w_ # [b,n,512]
             else:
                 w = torch.cat((w,w_),dim=1)
-            print(w.shape)
+            #print(w.shape)
         return x, w
 
 # block1 [3, 3, 16, 16]
