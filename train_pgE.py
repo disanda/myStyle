@@ -41,9 +41,9 @@ def train():
 	progressive = [100,150,200,250,300,350,400,450,500] #训练次数
 
 	for i,j in zip(range(9),progressive):
-		for epoch in range(50000*j):
+		for epoch in range(100*j):
 			with torch.no_grad(): #这里需要生成图片和变量
-				set_seed(epoch%10000)
+				set_seed(epoch%100)
 				latents = torch.randn(batch_size_pg[i], 512).to('cuda') #[32, 512]
 				w1 = Gm(latents) #[batch_size,18,512]
 				imgs1 = Gs.forward(w1,i)
