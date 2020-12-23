@@ -20,8 +20,8 @@ def train():
 	Gs.load_state_dict(torch.load('./pre-model/Gs_dict.pth'))
 	Gm = Mapping(num_layers=18, mapping_layers=8, latent_size=512, dlatent_size=512, mapping_fmaps=512)
 	Gm.load_state_dict(torch.load('./pre-model/Gm_dict.pth')) 
-	Gm.requires_grad_(False)
-	Gs.requires_grad_(False)
+	#Gm.requires_grad_(False)
+	#Gs.requires_grad_(False)
 	E = BE.BE()
 	E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V3_GsginE/models/E_model_ep10000.pth'))
 	Gs.cuda()
@@ -36,7 +36,7 @@ def train():
 	loss_lpips = lpips.LPIPS(net='vgg').to('cuda')
 	loss_kl = torch.nn.KLDivLoss()
 
-	batch_size = 5
+	batch_size = 4
 	for epoch in range(120000):
 		set_seed(epoch%10000)
 		latents = torch.randn(batch_size, 512).to('cuda') #[32, 512]
