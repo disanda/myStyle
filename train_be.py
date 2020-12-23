@@ -36,7 +36,7 @@ def train():
 	loss_kl = torch.nn.KLDivLoss()
 	#loss3 = torch.nn.KLDivLoss()
 
-	batch_size = 7
+	batch_size = 6
 	for epoch in range(120000):
 		with torch.no_grad(): #这里需要生成图片和变量
 			set_seed(epoch%30000)
