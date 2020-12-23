@@ -7,7 +7,6 @@ from nativeUtils.checkpointer import Checkpointer
 import logging
 from torchvision.utils import save_image
 from module.net import Generator, Mapping, Discriminator
-import module.Gs as gs
 import random
 from torch.nn import init
 
@@ -85,7 +84,7 @@ def set_seed(seed):
 #torch.save(Gm2.state_dict(), './Gm_dict.pth')
 
 #-----------------测试Gm_dict--------------
-G = gs.Generator(startf=16, maxf=512, layer_count=9, latent_size=512, channels=3)
+G = Generator(startf=16, maxf=512, layer_count=9, latent_size=512, channels=3)
 G.load_state_dict(torch.load('./Gs_dict.pth'))
 Gm = Mapping(num_layers=18, mapping_layers=8, latent_size=512, dlatent_size=512, mapping_fmaps=512)
 Gm.load_state_dict(torch.load('./Gm_dict.pth')) 

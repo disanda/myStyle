@@ -20,7 +20,7 @@ def train():
 	Gs.load_state_dict(torch.load('./pre-model/Gs_dict.pth'))
 	Gm = Mapping(num_layers=18, mapping_layers=8, latent_size=512, dlatent_size=512, mapping_fmaps=512)
 	Gm.load_state_dict(torch.load('./pre-model/Gm_dict.pth')) 
-	Gs.requires_grad_(False)
+	#Gs.requires_grad_(False)
 	Gm.requires_grad_(False)
 	E = BE.BE()
 	Gs.cuda()
