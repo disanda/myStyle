@@ -46,8 +46,7 @@ def train():
 
 		const2,w2 = E(imgs1.cuda())
 
-		with torch.no_grad():
-			imgs2=Gs.forward(w2,8)
+		imgs2=Gs.forward(w2,8)
 
 		E_optimizer.zero_grad()
 		loss_1 = loss_mse(imgs1,imgs2)
@@ -87,5 +86,7 @@ if __name__ == "__main__":
 	if not os.path.exists(resultPath1_2): os.mkdir(resultPath1_2)
 
 	train()
+
+
 
 

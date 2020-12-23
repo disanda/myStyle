@@ -93,6 +93,7 @@ class BE(nn.Module):
             resolution /=2
             self.decode_block.append(block)
 
+    #将w逆序，以保证和G的w顺序
     # def forward(self, x, lod=9):
     #     x = self.FromRGB(x)
     #     w = torch.tensor(0)
@@ -107,16 +108,30 @@ class BE(nn.Module):
     #     return x, w
 
     #和G的w逆序
+    # def forward(self, x, lod=9):
+    #     x = self.FromRGB(x)
+    #     w = torch.tensor(0)
+    #     for i in range(lod):
+    #         x,w1,w2 = self.decode_block[i](x)
+    #         w_ = torch.cat((w1.view(x.shape[0],1,512),w2.view(x.shape[0],1,512)),dim=1) # [b,2,512]
+    #         if i == 0:
+    #             w = w_ # [b,n,512]
+    #         else:
+    #             w = torch.cat((w,w_),dim=1)
+    #         #print(w.shape)
+    #     return x, w
+
+    #progressive
     def forward(self, x, lod=9):
         x = self.FromRGB(x)
         w = torch.tensor(0)
         for i in range(lod):
             x,w1,w2 = self.decode_block[i](x)
-            w_ = torch.cat((w1.view(x.shape[0],1,512),w2.view(x.shape[0],1,512)),dim=1) # [b,2,512]
+            w_ = torch.cat((w2.view(x.shape[0],1,512),w1.view(x.shape[0],1,512)),dim=1) # [b,2,512]
             if i == 0:
                 w = w_ # [b,n,512]
             else:
-                w = torch.cat((w,w_),dim=1)
+                w = torch.cat((w_,w),dim=1)
             #print(w.shape)
         return x, w
 
