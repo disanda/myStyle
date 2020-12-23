@@ -77,7 +77,7 @@ def train():
 				torch.save(E.state_dict(), resultPath1_2+'/E_model_ep%d.pth'%epoch)
 
 if __name__ == "__main__":
-	resultPath = "./result/EB_V2"
+	resultPath = "./result/EB_V2_inversW"
 	if not os.path.exists(resultPath): os.mkdir(resultPath)
 
 	resultPath1_1 = resultPath+"/imgs"
