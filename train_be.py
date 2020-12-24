@@ -23,7 +23,7 @@ def train():
 	#Gm.requires_grad_(False)
 	#Gs.requires_grad_(False)
 	E = BE.BE()
-	E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V3_GsginE/models/E_model_ep10000.pth'))
+	E.load_state_dict(torch.load('_yucheng/myStyle/myStyle-v1/result/EB_V3_finetuneLoss/models/E_model_ep40000.pth'))
 	Gs.cuda()
 	Gm.cuda()
 	E.cuda()
@@ -36,9 +36,9 @@ def train():
 	loss_lpips = lpips.LPIPS(net='vgg').to('cuda')
 	loss_kl = torch.nn.KLDivLoss()
 
-	batch_size = 4
+	batch_size = 5
 	for epoch in range(120000):
-		set_seed(epoch%10000)
+		set_seed(epoch%11000)
 		latents = torch.randn(batch_size, 512).to('cuda') #[32, 512]
 		with torch.no_grad(): #这里需要生成图片和变量
 			w1 = Gm(latents) #[batch_size,18,512]
@@ -57,15 +57,15 @@ def train():
 		loss_c_s = loss_mse(const1.std(),const2.std())
 
 		loss_w = loss_mse(w1,w2)
-		loss_w_m = loss_mse(w1.mean(),w2.mean()) #一会很大10,一会很小0.0001
-		loss_w_s = loss_mse(w1.std(),w2.std())
+		loss_w_m = loss_mse(w1.mean(),w2.mean()) #初期一会很大10,一会很小0.0001
+		loss_w_s = loss_mse(w1.std(),w2.std()) #后期一会很大，一会很小
 
 		y1, y2 = torch.nn.functional.softmax(const1),torch.nn.functional.softmax(const2)
 		loss_kl_c = loss_kl(torch.log(y1),y2)
 		loss_kl_c = torch.where(torch.isnan(loss_kl_c),torch.full_like(loss_kl_c,0), loss_kl_c)
 		loss_kl_c = torch.where(torch.isinf(loss_kl_c),torch.full_like(loss_kl_c,1), loss_kl_c)
 
-		loss_all = 7*loss_img_mse+ 3*loss_img_lpips  + 0.05*loss_c+loss_kl_c+loss_w+0.3*loss_w_m+loss_w_s+loss_c_m+loss_c_s
+		loss_all = 7*loss_img_mse+ 3*loss_img_lpips  + 0.05*loss_c+loss_kl_c+loss_w+0.3*loss_w_m+0.3loss_w_s+loss_c_m+loss_c_s
 		loss_all.backward()
 		E_optimizer.step()
 
@@ -82,7 +82,7 @@ def train():
 				torch.save(E.state_dict(), resultPath1_2+'/E_model_ep%d.pth'%epoch)
 
 if __name__ == "__main__":
-	resultPath = "./result/EB_V3_finetuneLoss"
+	resultPath = "./result/EB_V3_finetLoss_debugSy2"
 	if not os.path.exists(resultPath): os.mkdir(resultPath)
 
 	resultPath1_1 = resultPath+"/imgs"

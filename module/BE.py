@@ -51,7 +51,7 @@ class BEBlock(nn.Module):
         mean2 = torch.mean(x, dim=[2, 3], keepdim=True) # [b, c, 1, 1]
         std2 = torch.sqrt(torch.mean((x - mean2) ** 2, dim=[2, 3], keepdim=True))  # [b, c, 1, 1]
         style2 = torch.cat((mean2, std2), dim=1) # [b,2c,1,1]
-        w2 = self.inver_mod2(style1.view(style2.shape[0],style2.shape[1])) # [b,512]
+        w2 = self.inver_mod2(style2.view(style2.shape[0],style2.shape[1])) # [b,512] , 这里style2.view一直写错成style1.view
 
         x = self.instance_norm_2(x)
         x = F.leaky_relu(x, 0.2)
