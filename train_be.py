@@ -36,9 +36,9 @@ def train():
 	loss_lpips = lpips.LPIPS(net='vgg').to('cuda')
 	loss_kl = torch.nn.KLDivLoss()
 
-	batch_size = 5
+	batch_size = 4
 	for epoch in range(120000):
-		set_seed(epoch%11000)
+		set_seed(epoch%12000)
 		latents = torch.randn(batch_size, 512).to('cuda') #[32, 512]
 		with torch.no_grad(): #这里需要生成图片和变量
 			w1 = Gm(latents) #[batch_size,18,512]
