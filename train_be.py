@@ -65,7 +65,7 @@ def train():
 		loss_kl_c = torch.where(torch.isnan(loss_kl_c),torch.full_like(loss_kl_c,0), loss_kl_c)
 		loss_kl_c = torch.where(torch.isinf(loss_kl_c),torch.full_like(loss_kl_c,1), loss_kl_c)
 
-		loss_all = 7*loss_img_mse+ 3*loss_img_lpips  + 0.05*loss_c+loss_kl_c+loss_w+0.3*loss_w_m+0.3loss_w_s+loss_c_m+loss_c_s
+		loss_all = 7*loss_img_mse+ 3*loss_img_lpips  + 0.05*loss_c+loss_kl_c+loss_w+0.3*loss_w_m+0.3*loss_w_s+loss_c_m+loss_c_s
 		loss_all.backward()
 		E_optimizer.step()
 
