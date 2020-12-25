@@ -61,6 +61,10 @@ def train():
 		imgs2_ = F.avg_pool2d(imgs2,2,2)
 		loss_img_lpips = loss_lpips(imgs1_,imgs2_).mean()
 
+		loss_1 = 13*loss_img_mse+ 5*loss_img_lpips  
+		loss_1.backward(retain_graph=True)
+		E_optimizer.step()
+
 		loss_c = loss_mse(const1,const2) #没有这个const，梯度起初没法快速下降，很可能无法收敛, 这个惩罚即乘0.1后,效果大幅提升！
 		loss_c_m = loss_mse(const1.mean(),const2.mean())
 		loss_c_s = loss_mse(const1.std(),const2.std())
@@ -69,32 +73,30 @@ def train():
 		loss_w_m = loss_mse(w1.mean(),w2.mean()) #初期一会很大10,一会很小0.0001
 		loss_w_s = loss_mse(w1.std(),w2.std()) #后期一会很大，一会很小
 
-		imgs_center1 = imgs1[:,:,128:640,256:-256]
-		imgs_center2 = imgs2[:,:,128:640,256:-256]
-		loss_img_mse_center = loss_mse(imgs_center1,imgs_center2)
-		loss_img_lpips_center = loss_lpips(imgs_center1,imgs_center2).mean()
-
 		y1, y2 = torch.nn.functional.softmax(const1),torch.nn.functional.softmax(const2)
 		loss_kl_c = loss_kl(torch.log(y2),y1)
 		loss_kl_c = torch.where(torch.isnan(loss_kl_c),torch.full_like(loss_kl_c,0), loss_kl_c)
 		loss_kl_c = torch.where(torch.isinf(loss_kl_c),torch.full_like(loss_kl_c,1), loss_kl_c)
-
-		y1_imgs, y2_imgs = torch.nn.functional.softmax(imgs1_),torch.nn.functional.softmax(imgs2_)
-		loss_kl_img = loss_kl(torch.log(y2_imgs),y1_imgs) #D_kl(True=y1_imgs||Fake=y2_imgs)
-		loss_kl_img = torch.where(torch.isnan(loss_kl_img),torch.full_like(loss_kl_img,0), loss_kl_img)
-		loss_kl_img = torch.where(torch.isinf(loss_kl_img),torch.full_like(loss_kl_img,1), loss_kl_img)
 
 		w1_kl, w2_kl = torch.nn.functional.softmax(w1),torch.nn.functional.softmax(w2)
 		loss_kl_w = loss_kl(torch.log(w2_kl),w1_kl) #D_kl(True=y1_imgs||Fake=y2_imgs)
 		loss_kl_w = torch.where(torch.isnan(loss_kl_w),torch.full_like(loss_kl_w,0), loss_kl_w)
 		loss_kl_w = torch.where(torch.isinf(loss_kl_w),torch.full_like(loss_kl_w,1), loss_kl_w)
 
-		loss_1 = 13*loss_img_mse+ 5*loss_img_lpips  
-		loss_1.backward(retain_graph=True)
-		E_optimizer.step()
 		loss_2 = 0.02*loss_c+0.03*loss_c_m+0.03*loss_c_s+0.02*loss_w+0.03*loss_w_m+0.03*loss_w_s+ loss_kl_c + loss_kl_w
 		loss_2.backward(retain_graph=True)
 		E_optimizer.step()
+
+		imgs_center1 = imgs1[:,:,128:640,256:-256]
+		imgs_center2 = imgs2[:,:,128:640,256:-256]
+		loss_img_mse_center = loss_mse(imgs_center1,imgs_center2)
+		loss_img_lpips_center = loss_lpips(imgs_center1,imgs_center2).mean()
+
+		y1_imgs, y2_imgs = torch.nn.functional.softmax(imgs1_),torch.nn.functional.softmax(imgs2_)
+		loss_kl_img = loss_kl(torch.log(y2_imgs),y1_imgs) #D_kl(True=y1_imgs||Fake=y2_imgs)
+		loss_kl_img = torch.where(torch.isnan(loss_kl_img),torch.full_like(loss_kl_img,0), loss_kl_img)
+		loss_kl_img = torch.where(torch.isinf(loss_kl_img),torch.full_like(loss_kl_img,1), loss_kl_img)
+
 		loss_3 = 31*loss_img_mse_center +17*loss_img_lpips_center + loss_kl_img 
 		loss_3.backward(retain_graph=True)
 		E_optimizer.step()
