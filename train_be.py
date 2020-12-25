@@ -37,6 +37,9 @@ def train():
 	loss_lpips = lpips.LPIPS(net='vgg').to('cuda')
 	loss_kl = torch.nn.KLDivLoss()
 
+	loss_mse_c = torch.nn.MSELoss()
+	loss_lpips_c = lpips.LPIPS(net='vgg').to('cuda')
+
 	batch_size = 8
 	for epoch in range(120000):
 		set_seed(epoch%12000)
@@ -58,8 +61,8 @@ def train():
 
 		imgs_center1 = imgs1[:,:,128:640,256:-256]
 		imgs_center2 = imgs1[:,:,128:640,256:-256]
-		loss_img_mse_center = loss_mse(imgs_center1,imgs_center2)
-		loss_img_lpips_center = loss_lpips(imgs_center1,imgs_center2).mean()
+		loss_img_mse_center = loss_mse_c(imgs_center1,imgs_center2)
+		loss_img_lpips_center = loss_lpips_c(imgs_center1,imgs_center2).mean()
 
 		imgs1_ = F.avg_pool2d(imgs1,2,2)
 		imgs2_ = F.avg_pool2d(imgs2,2,2)
@@ -89,7 +92,7 @@ def train():
 		loss_kl_w = torch.where(torch.isnan(loss_kl_w),torch.full_like(loss_kl_w,0), loss_kl_w)
 		loss_kl_w = torch.where(torch.isinf(loss_kl_w),torch.full_like(loss_kl_w,1), loss_kl_w)
 
-		print('i_'+str(epoch)+'--loss_all__:'+str(loss_all)+'--loss_mse:'+str(loss_img_mse)+'--loss_lpips:'+str(loss_img_lpips)+'--loss_c:'+str(loss_c)+'--loss_kl_c:'+str(loss_kl_c))
+		print('i_'+str(epoch)+'--loss_all__:'+str(loss_all.item())+'--loss_mse:'+str(loss_img_mse.item())+'--loss_lpips:'+str(loss_img_lpips.item())+'--loss_c:'+str(loss_c.item())+'--loss_kl_c:'+str(loss_kl_c.item()))
 		print('loss_w:'+str(loss_w.item())+'--loss_w_m:'+str(loss_w_m.item())+'--loss_w_s:'+str(loss_w_s.item())+'--loss_c_m:'+str(loss_c_m.item())+'--loss_c_s:'+str(loss_c_s.item()))
 		print('loss_m_center:'+str(loss_img_mse_center.item())+'--loss_lpips_center:'+str(loss_img_lpips_center.item())+'--loss_kl_imgs:'+str(loss_kl_img.item())+'--loss_kl_w:'+str(loss_kl_w.item()))
 		print('-')
