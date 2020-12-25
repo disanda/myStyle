@@ -100,7 +100,7 @@ def train():
 		loss_kl_img = torch.where(torch.isinf(loss_kl_img),torch.full_like(loss_kl_img,1), loss_kl_img)
 
 		loss_3 = 31*loss_img_mse_center +17*loss_img_lpips_center + loss_kl_img 
-		loss_3.backward(retain_graph=True)
+		loss_3.backward()
 		E_optimizer.step()
 
 		loss_all =  loss_1 + loss_2 + loss_3
