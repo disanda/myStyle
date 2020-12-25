@@ -24,7 +24,7 @@ def train():
 	#Gm.requires_grad_(False)
 	#Gs.requires_grad_(False)
 	E = BE.BE()
-	E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V3_finetLoss_debugSy2/models/E_model_ep50000.pth'))
+	E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V3_finetLoss_debugSy2/models/E_model_ep50000.pth'),strict=False)
 	Gs.cuda()
 	Gm.cuda()
 	E.cuda()
