@@ -90,7 +90,9 @@ def train():
 		imgs_center1 = imgs1[:,:,128:640,256:-256]
 		imgs_center2 = imgs2[:,:,128:640,256:-256]
 		loss_img_mse_center = loss_mse(imgs_center1,imgs_center2)
-		loss_img_lpips_center = loss_lpips(imgs_center1,imgs_center2).mean()
+		imgs1_c_down = F.avg_pool2d(imgs_center1,2,2)
+		imgs2_c_down = F.avg_pool2d(imgs_center2,2,2)
+		loss_img_lpips_center = loss_lpips(imgs1_c_down,imgs2_c_down).mean()
 
 		y1_imgs, y2_imgs = torch.nn.functional.softmax(imgs1_),torch.nn.functional.softmax(imgs2_)
 		loss_kl_img = loss_kl(torch.log(y2_imgs),y1_imgs) #D_kl(True=y1_imgs||Fake=y2_imgs)
