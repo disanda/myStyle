@@ -32,9 +32,9 @@ class BEBlock(nn.Module):
             else:
                 self.conv_2 = ln.Conv2d(inputs, outputs, 3, 1, 1, bias=False)
         self.fused_scale = fused_scale
+        
         self.inputs = inputs
         self.outputs = outputs
-
         if self.inputs != self.outputs:
             self.conv_3 = ln.Conv2d(inputs, outputs, 1, 1, 0)
 
@@ -68,7 +68,7 @@ class BEBlock(nn.Module):
             x = self.conv_2(x)
             if not self.fused_scale: #在新的一层起初 fused_scale = flase, 完成上采样
                 x = downscale2d(x)
-        if inputs != outputs:
+        if self.inputs != self.outputs:
             residual = self.conv_3(residual)
         x = x+downscale2d(residual)
         return x, w1, w2
