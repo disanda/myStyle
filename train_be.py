@@ -5,6 +5,7 @@ from module.net import * # Generator,Mapping
 import module.BE as BE
 from module.custom_adam import LREQAdam
 import lpips
+from torch.nn import functional as F
 torch.backends.cudnn.benchmark = True
 torch.backends.cudnn.enabled = True
 
@@ -23,7 +24,7 @@ def train():
 	#Gm.requires_grad_(False)
 	#Gs.requires_grad_(False)
 	E = BE.BE()
-	E.load_state_dict(torch.load('./result/E_model_ep40000_bugSy2.pth'))
+	E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V3_finetLoss_debugSy2/models/E_model_ep50000.pth'))
 	Gs.cuda()
 	Gm.cuda()
 	E.cuda()
@@ -49,8 +50,16 @@ def train():
 		imgs2=Gs.forward(w2,8)
 
 		E_optimizer.zero_grad()
-		loss_img_mse = loss_mse(imgs1,imgs2)
-		loss_img_lpips = loss_lpips(imgs1,imgs2).mean()
+		#loss_img_mse = loss_mse(imgs1,imgs2)
+		loss_img_mse_c1 = loss_mse(imgs1[:,0],imgs2[:,0])
+		loss_img_mse_c2 = loss_mse(imgs1[:,1],imgs2[:,1])
+		loss_img_mse_c3 = loss_mse(imgs1[:,2],imgs2[:,2])
+		loss_img_mse = max(loss_img_mse_c1,loss_img_mse_c2,loss_img_mse_c3)
+
+		imgs1_ = F.avg_pool2d(imgs1,2,2)
+		imgs2_ = F.avg_pool2d(imgs2,2,2)
+		loss_img_lpips = loss_lpips(imgs1_,imgs2_).mean()
+
 
 		loss_c = loss_mse(const1,const2) #没有这个const，梯度起初没法快速下降，很可能无法收敛, 这个惩罚即乘0.1后,效果大幅提升！
 		loss_c_m = loss_mse(const1.mean(),const2.mean())
@@ -65,7 +74,7 @@ def train():
 		loss_kl_c = torch.where(torch.isnan(loss_kl_c),torch.full_like(loss_kl_c,0), loss_kl_c)
 		loss_kl_c = torch.where(torch.isinf(loss_kl_c),torch.full_like(loss_kl_c,1), loss_kl_c)
 
-		loss_all = 7*loss_img_mse+ 3*loss_img_lpips  + 0.05*loss_c+loss_kl_c+loss_w+0.3*loss_w_m+0.3*loss_w_s+loss_c_m+loss_c_s
+		loss_all = 13*loss_img_mse+ 5*loss_img_lpips  + 0.02*loss_c+loss_kl_c+0.02*loss_w+0.02*loss_w_m+0.02*loss_w_s+loss_c_m+loss_c_s
 		loss_all.backward()
 		E_optimizer.step()
 
@@ -82,7 +91,7 @@ def train():
 				torch.save(E.state_dict(), resultPath1_2+'/E_model_ep%d.pth'%epoch)
 
 if __name__ == "__main__":
-	resultPath = "./result/EB_V3_finetLoss_debugSy2"
+	resultPath = "./result/EB_V4_residual_mse1C"
 	if not os.path.exists(resultPath): os.mkdir(resultPath)
 
 	resultPath1_1 = resultPath+"/imgs"

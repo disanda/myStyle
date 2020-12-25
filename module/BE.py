@@ -43,6 +43,7 @@ class BEBlock(nn.Module):
         style1 = torch.cat((mean1, std1), dim=1) # [b,2c,1,1]
         w1 = self.inver_mod1(style1.view(style1.shape[0],style1.shape[1])) # [b,2c]->[b,512]
 
+        residual = x
         x = self.instance_norm_1(x)
         x = F.leaky_relu(x, 0.2)
         x = torch.addcmul(x, value=1.0, tensor1=self.noise_weight_1, tensor2=torch.randn([x.shape[0], 1, x.shape[2], x.shape[3]]).to(x.device))
@@ -62,6 +63,7 @@ class BEBlock(nn.Module):
             x = self.conv_2(x)
             if not self.fused_scale: #在新的一层起初 fused_scale = flase, 完成上采样
                 x = downscale2d(x)
+            x = x+downscale2d(residual)
         return x, w1, w2
 
 

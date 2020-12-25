@@ -40,11 +40,11 @@ Gm = Mapping(num_layers=18, mapping_layers=8, latent_size=512, dlatent_size=512,
 Gm.load_state_dict(torch.load('./pre-model/Gm_dict.pth')) 
 
 #---------加载部分模型参数
-import module.BE as BE
+#import module.BE as BE
 #import module.BE_reTune as BE
-E = BE.BE()
+#E = BE.BE()
 
-E.load_state_dict(torch.load('/Users/apple/Desktop/myStyle/StyleGAN-v1/E_model_ep30000.pth',map_location=torch.device('cpu')),strict=False)
+#E.load_state_dict(torch.load('/Users/apple/Desktop/myStyle/StyleGAN-v1/E_model_ep30000.pth',map_location=torch.device('cpu')),strict=False)
 
 # pretrained_dict = torch.load('/Users/apple/Desktop/myStyle/StyleGAN-v1/E_model_ep30000.pth',map_location=torch.device('cpu'))
 # model_dict = E.state_dict()
@@ -55,23 +55,37 @@ E.load_state_dict(torch.load('/Users/apple/Desktop/myStyle/StyleGAN-v1/E_model_e
 
 
 lod = 8
-i=5
+i=1
+set_seed(i)
+latents = torch.randn(5, 512)
+
+# with torch.no_grad():
+# 	latents = Gm(latents) 
+# 	img1 = G.forward(latents,lod=lod)
+# 	c, w = E(img1,block_num=lod+1)
+# 	img2 = G.forward(w,lod=lod)
+
+# img = torch.cat((img1,img2))
+# save_image((img+1)/2, 'ED_lod%d_i%d.png'%(lod,i),nrow=5)
+
+
+#---------------多种插值的上下采样方式--------
+from torch.nn import functional as F
+
+#img2_1 = F.interpolate(img,[256,256],mode='bilinear')
+img2_2 = F.avg_pool2d(img,2,2)
+#img2_3 = F.interpolate(img,[256,256])
+
+lod = 8
+i=1
 set_seed(i)
 latents = torch.randn(5, 512)
 
 with torch.no_grad():
 	latents = Gm(latents) 
 	img1 = G.forward(latents,lod=lod)
-	c, w = E(img1,block_num=lod+1)
-	img2 = G.forward(w,lod=lod)
 
-img = torch.cat((img1,img2))
 save_image((img+1)/2, 'ED_lod%d_i%d.png'%(lod,i),nrow=5)
-
-
-
-
-
 
 
 
