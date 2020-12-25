@@ -69,11 +69,9 @@ class BEBlock(nn.Module):
             if not self.fused_scale: #在新的一层起初 fused_scale = flase, 完成上采样
                 x = downscale2d(x)
 
-        if self.inputs != self.outputs:
+        if self.inputs != self.outputs: 
             residual = self.conv_3(residual)
-            residual = downscale2d(self.conv_3(residual))
-        else:
-            residual = downscale2d(residual)
+        residual = downscale2d(residual)
 
         x = x+residual
         return x, w1, w2
