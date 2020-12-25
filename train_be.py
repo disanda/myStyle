@@ -69,12 +69,6 @@ def train():
 		loss_w_m = loss_mse(w1.mean(),w2.mean()) #初期一会很大10,一会很小0.0001
 		loss_w_s = loss_mse(w1.std(),w2.std()) #后期一会很大，一会很小
 
-		loss_all = 13*loss_img_mse+ 5*loss_img_lpips  + 0.02*loss_c+0.02*loss_w+0.03*loss_w_m+0.03*loss_w_s+0.03*loss_c_m+0.03*loss_c_s
-
-		loss_all.backward()
-		E_optimizer.step()
-
-		E_optimizer.zero_grad()
 		imgs_center1 = imgs1[:,:,128:640,256:-256]
 		imgs_center2 = imgs2[:,:,128:640,256:-256]
 		loss_img_mse_center = loss_mse(imgs_center1,imgs_center2)
@@ -95,9 +89,16 @@ def train():
 		loss_kl_w = torch.where(torch.isnan(loss_kl_w),torch.full_like(loss_kl_w,0), loss_kl_w)
 		loss_kl_w = torch.where(torch.isinf(loss_kl_w),torch.full_like(loss_kl_w,1), loss_kl_w)
 
-		loss_all2 = 31*loss_img_mse_center +17*loss_img_lpips_center + loss_kl_c + loss_kl_img + loss_kl_w
-		loss_all2.backward()
+		loss_1 = 13*loss_img_mse+ 5*loss_img_lpips  
+		loss_1.backward(retain_graph=True)
 		E_optimizer.step()
+		loss_2 = 0.02*loss_c+0.03*loss_c_m+0.03*loss_c_s+0.02*loss_w+0.03*loss_w_m+0.03*loss_w_s+ loss_kl_c + loss_kl_w
+		loss_2.backward(retain_graph=True)
+		E_optimizer.step()
+		loss_3 = 31*loss_img_mse_center +17*loss_img_lpips_center + loss_kl_img 
+		loss_3.backward(retain_graph=True)
+		E_optimizer.step()
+
 
 		print('i_'+str(epoch)+'--loss_all__:'+str(loss_all.item())+'--loss_mse:'+str(loss_img_mse.item())+'--loss_lpips:'+str(loss_img_lpips.item())+'--loss_c:'+str(loss_c.item())+'--loss_kl_c:'+str(loss_kl_c.item()))
 		print('loss_w:'+str(loss_w.item())+'--loss_w_m:'+str(loss_w_m.item())+'--loss_w_s:'+str(loss_w_s.item())+'--loss_c_m:'+str(loss_c_m.item())+'--loss_c_s:'+str(loss_c_s.item()))
