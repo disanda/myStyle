@@ -75,7 +75,7 @@ class BEBlock(nn.Module):
         if self.inputs != self.outputs: 
             residual = self.conv_3(residual)
 
-        x = 0.3*x+0.7*residual #降低x的比例，可以将const的loss缩小！！ 10-11 >> 7 同时 c_s的loss扩大至3， ws的抖动提前, 效果更好
+        x = 0.11*x+0.89*residual #降低x的比例，可以将const的loss缩小！！0.7*residual： 10-11 >> 7 同时 c_s的loss扩大至3， ws的抖动提前, 效果更好
         return x, w1, w2
 
 

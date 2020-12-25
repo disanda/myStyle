@@ -24,7 +24,7 @@ def train():
 	#Gm.requires_grad_(False)
 	#Gs.requires_grad_(False)
 	E = BE.BE()
-	E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V3_finetLoss_debugSy2/models/E_model_ep50000.pth'),strict=False)
+	E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V4_residual_mse1C/models/E_model_ep10000.pth'),strict=False)
 	Gs.cuda()
 	Gm.cuda()
 	E.cuda()
@@ -56,6 +56,11 @@ def train():
 		loss_img_mse_c3 = loss_mse(imgs1[:,2],imgs2[:,2])
 		loss_img_mse = max(loss_img_mse_c1,loss_img_mse_c2,loss_img_mse_c3)
 
+		imgs_center1 = imgs1[:,:,128:640,256:-256]
+		imgs_center2 = imgs1[:,:,128:640,256:-256]
+		loss_img_mse_center = loss_mse(imgs_center1,imgs_center2)
+		loss_img_lpips_center = loss_lpips(imgs_center1,imgs_center2).mean()
+
 		imgs1_ = F.avg_pool2d(imgs1,2,2)
 		imgs2_ = F.avg_pool2d(imgs2,2,2)
 		loss_img_lpips = loss_lpips(imgs1_,imgs2_).mean()
@@ -70,16 +75,29 @@ def train():
 		loss_w_s = loss_mse(w1.std(),w2.std()) #后期一会很大，一会很小
 
 		y1, y2 = torch.nn.functional.softmax(const1),torch.nn.functional.softmax(const2)
-		loss_kl_c = loss_kl(torch.log(y1),y2)
+		loss_kl_c = loss_kl(torch.log(y2),y1)
 		loss_kl_c = torch.where(torch.isnan(loss_kl_c),torch.full_like(loss_kl_c,0), loss_kl_c)
 		loss_kl_c = torch.where(torch.isinf(loss_kl_c),torch.full_like(loss_kl_c,1), loss_kl_c)
 
-		loss_all = 13*loss_img_mse+ 5*loss_img_lpips  + 0.02*loss_c+loss_kl_c+0.02*loss_w+0.03*loss_w_m+0.03*loss_w_s+0.03*loss_c_m+0.03*loss_c_s
+		y1_imgs, y2_imgs = torch.nn.functional.softmax(imgs1_),torch.nn.functional.softmax(imgs2_)
+		loss_kl_img = loss_kl(torch.log(y2_imgs),y1_imgs) #D_kl(True=y1_imgs||Fake=y2_imgs)
+		loss_kl_img = torch.where(torch.isnan(loss_kl_img),torch.full_like(loss_kl_img,0), loss_kl_img)
+		loss_kl_img = torch.where(torch.isinf(loss_kl_img),torch.full_like(loss_kl_img,1), loss_kl_img)
+
+		w1_kl, w2_kl = torch.nn.functional.softmax(w1),torch.nn.functional.softmax(w2)
+		loss_kl_w = loss_kl(torch.log(w2_kl),w1_kl) #D_kl(True=y1_imgs||Fake=y2_imgs)
+		loss_kl_w = torch.where(torch.isnan(loss_kl_w),torch.full_like(loss_kl_w,0), loss_kl_w)
+		loss_kl_w = torch.where(torch.isinf(loss_kl_w),torch.full_like(loss_kl_w,1), loss_kl_w)
+
+		loss_all = 13*loss_img_mse+ 5*loss_img_lpips  + 0.02*loss_c+loss_kl_c+0.02*loss_w+0.03*loss_w_m+0.03*loss_w_s+0.03*loss_c_m+0.03*loss_c_s \
+		+ 31*loss_img_mse_center +17*loss_img_lpips_center + loss_kl_img + loss_kl_w
+
 		loss_all.backward()
 		E_optimizer.step()
 
 		print('i_'+str(epoch)+'--loss_all__:'+str(loss_all.item())+'--loss_mse:'+str(loss_img_mse.item())+'--loss_lpips:'+str(loss_img_lpips.item())+'--loss_c:'+str(loss_c.item())+'--loss_kl_c:'+str(loss_kl_c.item()))
 		print('loss_w:'+str(loss_w.item())+'--loss_w_m:'+str(loss_w_m.item())+'--loss_w_s:'+str(loss_w_s.item())+'--loss_c_m:'+str(loss_c_m.item())+'--loss_c_s:'+str(loss_c_s.item()))
+		print('loss_m_center:'+str(loss_img_mse_center.item())+'--loss_lpips_center:'+str(loss_img_lpips_center.item())+'--loss_kl_imgs:'+str(loss_kl_imgs.item())+'--loss_kl_w:'+str(loss_kl_w.item()))
 		print('-')
 		if epoch % 100 == 0:
 			test_img = torch.cat((imgs1[:3],imgs2[:3]))*0.5+0.5
@@ -87,11 +105,12 @@ def train():
 			with open(resultPath+'/Loss.txt', 'a+') as f:
 				print('i_'+str(epoch)+'--loss_all__:'+str(loss_all.item())+'--loss_mse:'+str(loss_img_mse.item())+'--loss_lpips:'+str(loss_img_lpips.item())+'--loss_c:'+str(loss_c.item())+'--loss_kl_c:'+str(loss_kl_c.item()),file=f)
 				print('loss_w:'+str(loss_w.item())+'--loss_w_m:'+str(loss_w_m.item())+'--loss_w_s:'+str(loss_w_s.item())+'--loss_c_m:'+str(loss_c_m.item())+'--loss_c_s:'+str(loss_c_s.item()),file=f)
+				print('loss_m_center:'+str(loss_img_mse_center.item())+'--loss_lpips_center:'+str(loss_img_lpips_center.item())+'--loss_kl_imgs:'+str(loss_kl_imgs.item())+'--loss_kl_w:'+str(loss_kl_w.item()),file=f)
 			if epoch % 10000 == 0:
 				torch.save(E.state_dict(), resultPath1_2+'/E_model_ep%d.pth'%epoch)
 
 if __name__ == "__main__":
-	resultPath = "./result/EB_V4_residual_mse1C"
+	resultPath = "./result/EB_V5_center_kl_inverse_all_res11-89"
 	if not os.path.exists(resultPath): os.mkdir(resultPath)
 
 	resultPath1_1 = resultPath+"/imgs"
