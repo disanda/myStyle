@@ -91,7 +91,7 @@ def train():
 
 		print('i_'+str(epoch)+'--loss_all__:'+str(loss_all)+'--loss_mse:'+str(loss_img_mse)+'--loss_lpips:'+str(loss_img_lpips)+'--loss_c:'+str(loss_c)+'--loss_kl_c:'+str(loss_kl_c))
 		print('loss_w:'+str(loss_w.item())+'--loss_w_m:'+str(loss_w_m.item())+'--loss_w_s:'+str(loss_w_s.item())+'--loss_c_m:'+str(loss_c_m.item())+'--loss_c_s:'+str(loss_c_s.item()))
-		print('loss_m_center:'+str(loss_img_mse_center.item())+'--loss_lpips_center:'+str(loss_img_lpips_center.item())+'--loss_kl_imgs:'+str(loss_kl_imgs.item())+'--loss_kl_w:'+str(loss_kl_w.item()))
+		print('loss_m_center:'+str(loss_img_mse_center.item())+'--loss_lpips_center:'+str(loss_img_lpips_center.item())+'--loss_kl_imgs:'+str(loss_kl_img.item())+'--loss_kl_w:'+str(loss_kl_w.item()))
 		print('-')
 
 		loss_all = 13*loss_img_mse+ 5*loss_img_lpips  + 0.02*loss_c+loss_kl_c+0.02*loss_w+0.03*loss_w_m+0.03*loss_w_s+0.03*loss_c_m+0.03*loss_c_s \
@@ -102,7 +102,7 @@ def train():
 
 		print('i_'+str(epoch)+'--loss_all__:'+str(loss_all.item())+'--loss_mse:'+str(loss_img_mse.item())+'--loss_lpips:'+str(loss_img_lpips.item())+'--loss_c:'+str(loss_c.item())+'--loss_kl_c:'+str(loss_kl_c.item()))
 		print('loss_w:'+str(loss_w.item())+'--loss_w_m:'+str(loss_w_m.item())+'--loss_w_s:'+str(loss_w_s.item())+'--loss_c_m:'+str(loss_c_m.item())+'--loss_c_s:'+str(loss_c_s.item()))
-		print('loss_m_center:'+str(loss_img_mse_center.item())+'--loss_lpips_center:'+str(loss_img_lpips_center.item())+'--loss_kl_imgs:'+str(loss_kl_imgs.item())+'--loss_kl_w:'+str(loss_kl_w.item()))
+		print('loss_m_center:'+str(loss_img_mse_center.item())+'--loss_lpips_center:'+str(loss_img_lpips_center.item())+'--loss_kl_imgs:'+str(loss_kl_img.item())+'--loss_kl_w:'+str(loss_kl_w.item()))
 		print('-')
 		if epoch % 100 == 0:
 			test_img = torch.cat((imgs1[:3],imgs2[:3]))*0.5+0.5
@@ -110,7 +110,7 @@ def train():
 			with open(resultPath+'/Loss.txt', 'a+') as f:
 				print('i_'+str(epoch)+'--loss_all__:'+str(loss_all.item())+'--loss_mse:'+str(loss_img_mse.item())+'--loss_lpips:'+str(loss_img_lpips.item())+'--loss_c:'+str(loss_c.item())+'--loss_kl_c:'+str(loss_kl_c.item()),file=f)
 				print('loss_w:'+str(loss_w.item())+'--loss_w_m:'+str(loss_w_m.item())+'--loss_w_s:'+str(loss_w_s.item())+'--loss_c_m:'+str(loss_c_m.item())+'--loss_c_s:'+str(loss_c_s.item()),file=f)
-				print('loss_m_center:'+str(loss_img_mse_center.item())+'--loss_lpips_center:'+str(loss_img_lpips_center.item())+'--loss_kl_imgs:'+str(loss_kl_imgs.item())+'--loss_kl_w:'+str(loss_kl_w.item()),file=f)
+				print('loss_m_center:'+str(loss_img_mse_center.item())+'--loss_lpips_center:'+str(loss_img_lpips_center.item())+'--loss_kl_imgs:'+str(loss_kl_img.item())+'--loss_kl_w:'+str(loss_kl_w.item()),file=f)
 			if epoch % 10000 == 0:
 				torch.save(E.state_dict(), resultPath1_2+'/E_model_ep%d.pth'%epoch)
 
