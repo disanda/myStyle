@@ -37,10 +37,10 @@ def train():
 	loss_lpips = lpips.LPIPS(net='vgg').to('cuda')
 	loss_kl = torch.nn.KLDivLoss()
 
-	batch_size = 8
+	batch_size = 7
 	const1 = const_.repeat(batch_size,1,1,1)
 	for epoch in range(120000):
-		set_seed(epoch%12000)
+		set_seed(epoch%20000)
 		latents = torch.randn(batch_size, 512).to('cuda') #[32, 512]
 		with torch.no_grad(): #这里需要生成图片和变量
 			w1 = Gm(latents) #[batch_size,18,512]
@@ -104,7 +104,7 @@ def train():
 		E_optimizer.step()
 
 		loss_all =  loss_1 + loss_2 + loss_3
-		print('i_'+str(epoch)+'--loss_all__:'+str(loss_all)+'--loss_mse:'+str(loss_img_mse.item())+'--loss_lpips:'+str(loss_img_lpips.item())+'--loss_c:'+str(loss_c.item())+'--loss_kl_c:'+str(loss_kl_c.item()))
+		print('i_'+str(epoch)+'--loss_all__:'+str(loss_all.item())+'--loss_mse:'+str(loss_img_mse.item())+'--loss_lpips:'+str(loss_img_lpips.item())+'--loss_c:'+str(loss_c.item())+'--loss_kl_c:'+str(loss_kl_c.item()))
 		print('loss_w:'+str(loss_w.item())+'--loss_w_m:'+str(loss_w_m.item())+'--loss_w_s:'+str(loss_w_s.item())+'--loss_c_m:'+str(loss_c_m.item())+'--loss_c_s:'+str(loss_c_s.item()))
 		print('loss_m_center:'+str(loss_img_mse_center.item())+'--loss_lpips_center:'+str(loss_img_lpips_center.item())+'--loss_kl_imgs:'+str(loss_kl_img.item())+'--loss_kl_w:'+str(loss_kl_w.item()))
 		print('-')
