@@ -31,8 +31,11 @@ class BEBlock(nn.Module):
                 self.conv_2 = ln.Conv2d(inputs, outputs, 3, 2, 1, bias=False, transform_kernel=True)
             else:
                 self.conv_2 = ln.Conv2d(inputs, outputs, 3, 1, 1, bias=False)
-
         self.fused_scale = fused_scale
+
+        if inputs != outputs:
+            self.conv_3 = ln.Conv2d(inputs, outputs, 1, 1, 0)
+
         with torch.no_grad():
             self.bias_1.zero_()
             self.bias_2.zero_()
@@ -63,7 +66,9 @@ class BEBlock(nn.Module):
             x = self.conv_2(x)
             if not self.fused_scale: #在新的一层起初 fused_scale = flase, 完成上采样
                 x = downscale2d(x)
-            x = x+downscale2d(residual)
+        if inputs != outputs:
+            residual = self.conv_3(residual)
+        x = x+downscale2d(residual)
         return x, w1, w2
 
 
