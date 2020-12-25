@@ -72,7 +72,8 @@ class BEBlock(nn.Module):
         if self.inputs != self.outputs: 
             residual = self.conv_3(residual)
         residual = downscale2d(residual)
-
+        print(x.shape)
+        print(residual.shape)
         x = x+residual
         return x, w1, w2
 
