@@ -72,13 +72,13 @@ class BEBlock(nn.Module):
         if self.inputs != self.outputs:
             if self.fused_scale:
                 residual = self.conv_3(residual)
-                x = x+residual
             else:
                 residual = downscale2d(self.conv_3(residual))
-                x = x+residual
         else:
             residual = downscale2d(residual)
-            x = x+residual
+        print(x.shape)
+        print(residual.shape)
+        x = x+residual
         return x, w1, w2
 
 
