@@ -69,12 +69,6 @@ def train():
 		loss_w_m = loss_mse(w1.mean(),w2.mean()) #初期一会很大10,一会很小0.0001
 		loss_w_s = loss_mse(w1.std(),w2.std()) #后期一会很大，一会很小
 
-
-		print('i_'+str(epoch)+'--loss_all__:'+str(loss_all)+'--loss_mse:'+str(loss_img_mse.item())+'--loss_lpips:'+str(loss_img_lpips.item())+'--loss_c:'+str(loss_c.item())+'--loss_kl_c:'+str(loss_kl_c.item()))
-		print('loss_w:'+str(loss_w.item())+'--loss_w_m:'+str(loss_w_m.item())+'--loss_w_s:'+str(loss_w_s.item())+'--loss_c_m:'+str(loss_c_m.item())+'--loss_c_s:'+str(loss_c_s.item()))
-		print('loss_m_center:'+str(loss_img_mse_center.item())+'--loss_lpips_center:'+str(loss_img_lpips_center.item())+'--loss_kl_imgs:'+str(loss_kl_img.item())+'--loss_kl_w:'+str(loss_kl_w.item()))
-		print('-')
-
 		loss_all = 13*loss_img_mse+ 5*loss_img_lpips  + 0.02*loss_c+0.02*loss_w+0.03*loss_w_m+0.03*loss_w_s+0.03*loss_c_m+0.03*loss_c_s
 
 		loss_all.backward()
@@ -109,6 +103,7 @@ def train():
 		print('loss_w:'+str(loss_w.item())+'--loss_w_m:'+str(loss_w_m.item())+'--loss_w_s:'+str(loss_w_s.item())+'--loss_c_m:'+str(loss_c_m.item())+'--loss_c_s:'+str(loss_c_s.item()))
 		print('loss_m_center:'+str(loss_img_mse_center.item())+'--loss_lpips_center:'+str(loss_img_lpips_center.item())+'--loss_kl_imgs:'+str(loss_kl_img.item())+'--loss_kl_w:'+str(loss_kl_w.item()))
 		print('-')
+
 		if epoch % 100 == 0:
 			test_img = torch.cat((imgs1[:3],imgs2[:3]))*0.5+0.5
 			torchvision.utils.save_image(test_img, resultPath1_1+'/ep%d.jpg'%(epoch), nrow=3)
