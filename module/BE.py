@@ -32,8 +32,10 @@ class BEBlock(nn.Module):
             else:
                 self.conv_2 = ln.Conv2d(inputs, outputs, 3, 1, 1, bias=False)
         self.fused_scale = fused_scale
+        self.inputs = inputs
+        self.outputs = outputs
 
-        if inputs != outputs:
+        if self.inputs != self.outputs:
             self.conv_3 = ln.Conv2d(inputs, outputs, 1, 1, 0)
 
         with torch.no_grad():
