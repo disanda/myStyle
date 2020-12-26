@@ -145,7 +145,7 @@ def train(avg_tensor = None):
 				+'--loss_c_m:'+str(loss_c_m.item())+'--loss_c_s:'+str(loss_c_s.item())+'--loss_kl_c:'+str(loss_kl_c.item()),file=f)
 			if epoch % 5000 == 0:
 				torch.save(E.state_dict(), resultPath1_2+'/E_model_ep%d.pth'%epoch)
-				torch.scae(Gm.buffer1,resultPath1_2+'/center_tensor_ep%d.pt'%epoch)
+				torch.save(Gm.buffer1,resultPath1_2+'/center_tensor_ep%d.pt'%epoch)
 
 if __name__ == "__main__":
 	resultPath = "./result/EB_V6_3ImgLoss_Res0618_truncW"
