@@ -461,7 +461,7 @@ class Mapping(nn.Module):
 
         if self.buffer1 is not None:
             batch_avg = x.mean(dim=0) #让原向量以中心向量 dlatent_avg.buff.data 为中心，按比例self.dlatent_avg_beta=0.995围绕中心向量拉近
-            self.buffer1.data.lerp_(batch_avg.data, 1.0 - 0.995) # avg.lerp_( x , 1-0.995 )
+            self.buffer1.data.lerp_(batch_avg.data, 1.0 - 0.9995) # avg.lerp_( x , 1-0.995 ) ->  avg = avg + 0.005(avg - batch_avg)
             layer_idx = torch.arange(18)[np.newaxis, :, np.newaxis] # shape:[1,18,1], layer_idx = [0,1,2,3,4,5,6。。。，17]
             ones = torch.ones(layer_idx.shape, dtype=torch.float32) # shape:[1,18,1], ones = [1,1,1,1,1,1,1,1]
             coefs = torch.where(layer_idx < 8, 0.7 * ones, ones) # 18个变量前8个裁剪比例truncation_psi
