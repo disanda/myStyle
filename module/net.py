@@ -448,7 +448,7 @@ class Mapping(nn.Module):
             block = MappingBlock(inputs, outputs, lrmul=0.01)
             inputs = outputs
             setattr(self, "block_%d" % (i + 1), block)
-        self.register_buffer('buffer1', trunc_tensor)
+        self.register_buffer('buffer1', trunc_tensor) #[18,512]
 
     def forward(self, z):
         x = pixel_norm(z)
@@ -456,14 +456,12 @@ class Mapping(nn.Module):
         for i in range(self.mapping_layers):
             x = getattr(self, "block_%d" % (i + 1))(x)
 
-        x.view(x.shape[0], 1, x.shape[1]).repeat(1, 18, 1) # [-1,18,512]
+        x = x.view(x.shape[0], 1, x.shape[1]).repeat(1, 18, 1) # [-1,18,512]
 
 
-        if self.buffer1.data is not None:
-            print('yes!!!!!')
+        if self.buffer1 is not None:
             batch_avg = x.mean(dim=0) #让原向量以中心向量 dlatent_avg.buff.data 为中心，按比例self.dlatent_avg_beta=0.995围绕中心向量拉近
             self.buffer1.data.lerp_(batch_avg.data, 1.0 - 0.995) # avg.lerp_( x , 1-0.995 )
-
             layer_idx = torch.arange(18)[np.newaxis, :, np.newaxis] # shape:[1,18,1], layer_idx = [0,1,2,3,4,5,6。。。，17]
             ones = torch.ones(layer_idx.shape, dtype=torch.float32) # shape:[1,18,1], ones = [1,1,1,1,1,1,1,1]
             coefs = torch.where(layer_idx < 8, 0.7 * ones, ones) # 18个变量前8个裁剪比例truncation_psi
