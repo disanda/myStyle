@@ -125,7 +125,7 @@ def train(avg_tensor = None):
 		loss_kl_w = torch.where(torch.isinf(loss_kl_w),torch.full_like(loss_kl_w,1), loss_kl_w)
 
 		loss_4 = 0.02*loss_c+0.03*loss_c_m+0.03*loss_c_s+0.02*loss_w+0.03*loss_w_m+0.03*loss_w_s+ loss_kl_c + loss_kl_w
-		loss_4.backward()
+		loss_4.backward(retain_graph=True)
 		E_optimizer.step()
 
 		loss_all =  loss_1 + loss_2 + loss_3 + loss_4
