@@ -88,7 +88,9 @@ def train(avg_tensor = None):
 
 		imgs1_column_down = F.avg_pool2d(imgs_column1,2,2)
 		imgs2_column_down = F.avg_pool2d(imgs_column2,2,2)
-		loss_img_lpips_column = loss_lpips(imgs1_column_down,imgs2_column_down).mean()
+		imgs1_column_down_ = F.avg_pool2d(imgs1_column_down,2,2)
+		imgs2_column_down_ = F.avg_pool2d(imgs2_column_down,2,2)
+		loss_img_lpips_column = loss_lpips(imgs1_column_down_,imgs2_column_down_).mean()
 
 		loss_2 = 19*loss_img_mse_column +7*loss_img_lpips_column
 		loss_2.backward(retain_graph=True)
@@ -100,7 +102,9 @@ def train(avg_tensor = None):
 
 		imgs1_c_down = F.avg_pool2d(imgs_center1,2,2)
 		imgs2_c_down = F.avg_pool2d(imgs_center2,2,2)
-		loss_img_lpips_center = loss_lpips(imgs1_c_down,imgs2_c_down).mean()
+		imgs1_c_down_ = F.avg_pool2d(imgs1_c_down,2,2)
+		imgs2_c_down_ = F.avg_pool2d(imgs2_c_down,2,2)
+		loss_img_lpips_center = loss_lpips(imgs1_c_down_,imgs2_c_down_).mean()
 
 		loss_3 = 23*loss_img_mse_center +11*loss_img_lpips_center
 		loss_3.backward(retain_graph=True)
