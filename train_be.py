@@ -55,13 +55,13 @@ def train(avg_tensor = None):
 			layer_idx = torch.arange(18)[np.newaxis, :, np.newaxis] # shape:[1,18,1], layer_idx = [0,1,2,3,4,5,6。。。，17]
 			ones = torch.ones(layer_idx.shape, dtype=torch.float32) # shape:[1,18,1], ones = [1,1,1,1,1,1,1,1]
 			coefs = torch.where(layer_idx < 8, 0.7 * ones, ones) # 18个变量前8个裁剪比例truncation_psi [0.7,0.7,...,1,1,1] 
-			w2 = torch.lerp(self.buffer1.data, w2, coefs) # avg + (styles-avg) * 0.7
+			w2 = torch.lerp(self.buffer1.data, w2, coefs.to('cuda')) # avg + (styles-avg) * 0.7
 
 		imgs2=Gs.forward(w2,8)
 
 		E_optimizer.zero_grad()
-		#loss_img_mse = loss_mse(imgs1,imgs2)
 #loss1
+		#loss_img_mse = loss_mse(imgs1,imgs2)
 		loss_img_mse_c1 = loss_mse(imgs1[:,0],imgs2[:,0])
 		loss_img_mse_c2 = loss_mse(imgs1[:,1],imgs2[:,1])
 		loss_img_mse_c3 = loss_mse(imgs1[:,2],imgs2[:,2])
