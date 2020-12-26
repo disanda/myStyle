@@ -448,7 +448,6 @@ class Mapping(nn.Module):
             block = MappingBlock(inputs, outputs, lrmul=0.01)
             inputs = outputs
             setattr(self, "block_%d" % (i + 1), block)
-
         self.register_buffer('buffer1', trunc_tensor)
 
     def forward(self, z):
@@ -460,8 +459,8 @@ class Mapping(nn.Module):
         x.view(x.shape[0], 1, x.shape[1]).repeat(1, 18, 1) # [-1,18,512]
 
 
-        if self.trunc_tensor is not None:
-
+        if self.buffer1.data is not None:
+            print('yes!!!!!')
             batch_avg = x.mean(dim=0) #让原向量以中心向量 dlatent_avg.buff.data 为中心，按比例self.dlatent_avg_beta=0.995围绕中心向量拉近
             self.buffer1.data.lerp_(batch_avg.data, 1.0 - 0.995) # avg.lerp_( x , 1-0.995 )
 
