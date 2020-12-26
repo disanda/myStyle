@@ -25,7 +25,7 @@ def train(avg_tensor = None):
 	#Gs.requires_grad_(False)
 	Gm.buffer1 = avg_tensor
 	E = BE.BE()
-	E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V4_residual_mse1C/models/E_model_ep10000.pth'),strict=False)
+	E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V5_center_kl_inverse_all_res11-89/models/E_model_ep40000.pth'),strict=False)
 	Gs.cuda()
 	Gm.cuda()
 	E.cuda()
