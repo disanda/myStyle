@@ -20,43 +20,43 @@ def set_seed(seed):
 
 
 #------------------配置文件------------------------
-# parser = argparse.ArgumentParser(description="StyleGAN")
-# parser.add_argument(
-#         "--config-file",
-#         default="configs/experiment_ffhq.yaml",
-#         metavar="FILE",
-#         type=str,) # args.config_file
-# args = parser.parse_args()
-# cfg = get_cfg_defaults()
-# cfg.merge_from_file(args.config_file)
-# cfg.freeze()
+parser = argparse.ArgumentParser(description="StyleGAN")
+parser.add_argument(
+        "--config-file",
+        default="configs/experiment_ffhq.yaml",
+        metavar="FILE",
+        type=str,) # args.config_file
+args = parser.parse_args()
+cfg = get_cfg_defaults()
+cfg.merge_from_file(args.config_file)
+cfg.freeze()
 
 
 #---------------------------------继承原版的Gs Gm , dlantent_avg
-# model = Model(
-#         startf=cfg.MODEL.START_CHANNEL_COUNT, # startf = 16
-#         layer_count= cfg.MODEL.LAYER_COUNT, # LAYER_COUNT: 9
-#         maxf=cfg.MODEL.MAX_CHANNEL_COUNT, # cfg.MODEL.MAX_CHANNEL_COUNT : 512
-#         latent_size=cfg.MODEL.LATENT_SPACE_SIZE,
-#         truncation_psi=cfg.MODEL.TRUNCATIOM_PSI,
-#         truncation_cutoff=cfg.MODEL.TRUNCATIOM_CUTOFF, # _C.MODEL.TRUNCATIOM_CUTOFF = 8
-#         mapping_layers=cfg.MODEL.MAPPING_LAYERS,
-#         channels=3)
+model = Model(
+        startf=cfg.MODEL.START_CHANNEL_COUNT, # startf = 16
+        layer_count= cfg.MODEL.LAYER_COUNT, # LAYER_COUNT: 9
+        maxf=cfg.MODEL.MAX_CHANNEL_COUNT, # cfg.MODEL.MAX_CHANNEL_COUNT : 512
+        latent_size=cfg.MODEL.LATENT_SPACE_SIZE,
+        truncation_psi=cfg.MODEL.TRUNCATIOM_PSI,
+        truncation_cutoff=cfg.MODEL.TRUNCATIOM_CUTOFF, # _C.MODEL.TRUNCATIOM_CUTOFF = 8
+        mapping_layers=cfg.MODEL.MAPPING_LAYERS,
+        channels=3)
 
-# model_dict = {
-#         'generator_s': model.generator,
-#         'mapping_fl_s': model.mapping,
-#         'dlatent_avg': model.dlatent_avg,  # dlatent_avg 平均人脸的位置
-#     }
-# #print('model.dlatent_avg_1:'+str(model.dlatent_avg.buff.data)) #[18,512],中心变量, 默认为0
+model_dict = {
+        'generator_s': model.generator,
+        'mapping_fl_s': model.mapping,
+        'dlatent_avg': model.dlatent_avg,  # dlatent_avg 平均人脸的位置
+    }
+#print('model.dlatent_avg_1:'+str(model.dlatent_avg.buff.data)) #[18,512],中心变量, 默认为0
 
 
-# logger = logging.getLogger("logger")
-# checkpointer = Checkpointer(cfg, model_dict, logger=logger, save=True)
-# checkpointer.load(file_name='./pre-model/karras2019stylegan-ffhq.pth') #读取模型
+logger = logging.getLogger("logger")
+checkpointer = Checkpointer(cfg, model_dict, logger=logger, save=True)
+checkpointer.load(file_name='./pre-model/karras2019stylegan-ffhq.pth') #读取模型
 
-#Gm = model.mapping
-# Gs = model.generator
+Gm = model.mapping
+Gs = model.generator
 
 #-----------原版：前8层潜变量裁剪比例0.7后向中心变量拉近----------
 
@@ -69,7 +69,12 @@ def set_seed(seed):
 # ones = torch.ones(layer_idx.shape, dtype=torch.float32) # shape:[1,18,1], ones = [1,1,1,1,1,1,1,1]
 # coefs = torch.where(layer_idx < 8, 0.7 * ones, ones) 
 # style = torch.lerp(model.dlatent_avg.buff.data, latents, coefs)
-# style_avg = model.dlatent_avg.buff.data.view(1,18,512)
+#style_avg = model.dlatent_avg.buff.data.view(1,18,512)
+#print(model.dlatent_avg.buff.data.shape) # (18,512) , 中心向量
+#center_tensor = model.dlatent_avg.buff.data
+#torch.save(center_tensor, 'center_tensor.pt' )
+#center_tensor2 = torch.load('center_tensor.pt')
+
 
 # print(style_avg.shape)
 # img_avg, img = Gs1.forward(style_avg,8), Gs1.forward(style,8)
@@ -84,19 +89,19 @@ def set_seed(seed):
 #torch.save(Gm2.state_dict(), './Gm_dict.pth')
 
 #-----------------测试Gm_dict--------------
-G = Generator(startf=16, maxf=512, layer_count=9, latent_size=512, channels=3)
-G.load_state_dict(torch.load('./Gs_dict.pth'))
-Gm = Mapping(num_layers=18, mapping_layers=8, latent_size=512, dlatent_size=512, mapping_fmaps=512)
-Gm.load_state_dict(torch.load('./Gm_dict.pth')) 
+# G = Generator(startf=16, maxf=512, layer_count=9, latent_size=512, channels=3)
+# G.load_state_dict(torch.load('./Gs_dict.pth'))
+# Gm = Mapping(num_layers=18, mapping_layers=8, latent_size=512, dlatent_size=512, mapping_fmaps=512)
+# Gm.load_state_dict(torch.load('./Gm_dict.pth')) 
 
-for i in range(10,15):
-#i = 0
-    set_seed(i)
-    latents = torch.randn(10, 512)
-    print(latents[0,:20])
-    latents = Gm(latents) 
-    print(latents[0,1,:20])
-#init.ones_(G.const) #改变G训练好的const，会导致生成失败
-#print(G.const)
-    img = G.forward(latents,8)
-    save_image((img+1)/2, 'seed%d.png'%i)
+# for i in range(10,15):
+# #i = 0
+#     set_seed(i)
+#     latents = torch.randn(10, 512)
+#     print(latents[0,:20])
+#     latents = Gm(latents) 
+#     print(latents[0,1,:20])
+# #init.ones_(G.const) #改变G训练好的const，会导致生成失败
+# #print(G.const)
+#     img = G.forward(latents,8)
+#     save_image((img+1)/2, 'seed%d.png'%i)

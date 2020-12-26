@@ -3,6 +3,8 @@ import numpy as np
 from module.net import Generator, Mapping, Discriminator
 from torchvision.utils import save_image
 import torchvision
+from torch.nn import functional as F
+
 #------------------随机数设置--------------
 def set_seed(seed):
     np.random.seed(seed)
@@ -17,7 +19,7 @@ G.load_state_dict(torch.load('./pre-model/Gs_dict.pth'))
 Gm = Mapping(num_layers=18, mapping_layers=8, latent_size=512, dlatent_size=512, mapping_fmaps=512)
 Gm.load_state_dict(torch.load('./pre-model/Gm_dict.pth')) 
 
-i=8
+i=9
 lod = 8
 set_seed(i)
 latents = torch.randn(5, 512)
@@ -81,9 +83,11 @@ with torch.no_grad():
 
 #------------------裁剪区域----------------
 
-img2 = img[:,:,128:640,256:-256]
+img2 = img[:,:,:,128:-128]
 print(img2.shape)
-save_image((img2+1)/2, 'half-seed_%d.png'%i,nrow=5)
+img3 = F.avg_pool2d(img2,2,2)
+print(img3.shape)
+save_image((img3+1)/2, 'column128_down_seed_%d.png'%i,nrow=5)
 
 
 

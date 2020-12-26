@@ -438,10 +438,10 @@ class MappingBlock(nn.Module):
         return x
 
 class Mapping(nn.Module):
-    def __init__(self, num_layers=18, mapping_layers=8, latent_size=512, dlatent_size=512, mapping_fmaps=512):
+    def __init__(self, num_layers=18, mapping_layers=8, latent_size=512, dlatent_size=512, mapping_fmaps=512, trunc_tensor=None):
         super(Mapping, self).__init__()
         inputs = latent_size
-        self.mapping_layers = mapping_layers
+        self.mapping_layers = mapping_layers # 8
         self.num_layers = num_layers #映射的扩充的层数，由1层 扩充到 2*9 = 18层
         for i in range(mapping_layers):
             outputs = dlatent_size if i == mapping_layers - 1 else mapping_fmaps
@@ -449,12 +449,27 @@ class Mapping(nn.Module):
             inputs = outputs
             setattr(self, "block_%d" % (i + 1), block)
 
+        self.register_buffer('buffer1', trunc_tensor)
+
     def forward(self, z):
         x = pixel_norm(z)
 
         for i in range(self.mapping_layers):
             x = getattr(self, "block_%d" % (i + 1))(x)
 
-        return x.view(x.shape[0], 1, x.shape[1]).repeat(1, self.num_layers, 1)
+        x.view(x.shape[0], 1, x.shape[1]).repeat(1, 18, 1) # [-1,18,512]
+
+
+        if self.trunc_tensor is not None:
+
+            batch_avg = x.mean(dim=0) #让原向量以中心向量 dlatent_avg.buff.data 为中心，按比例self.dlatent_avg_beta=0.995围绕中心向量拉近
+            self.buffer1.data.lerp_(batch_avg.data, 1.0 - 0.995) # avg.lerp_( x , 1-0.995 )
+
+            layer_idx = torch.arange(18)[np.newaxis, :, np.newaxis] # shape:[1,18,1], layer_idx = [0,1,2,3,4,5,6。。。，17]
+            ones = torch.ones(layer_idx.shape, dtype=torch.float32) # shape:[1,18,1], ones = [1,1,1,1,1,1,1,1]
+            coefs = torch.where(layer_idx < 8, 0.7 * ones, ones) # 18个变量前8个裁剪比例truncation_psi
+            x = torch.lerp(self.buffer1.data, x, coefs) # avg + (styles-avg) * 0.7
+
+        return x
 
 

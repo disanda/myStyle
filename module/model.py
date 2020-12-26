@@ -40,23 +40,23 @@ class Model(nn.Module): #三个网络 Gp Gs D 的封装
         self.dlatent_avg = DLatent(latent_size, self.mapping.num_layers)
         self.latent_size = latent_size
         self.dlatent_avg_beta = dlatent_avg_beta
-        self.truncation_psi = truncation_psi
-        self.style_mixing_prob = style_mixing_prob
-        self.truncation_cutoff = truncation_cutoff
+        self.truncation_psi = truncation_psi       # 0.7
+        self.style_mixing_prob = style_mixing_prob 
+        self.truncation_cutoff = truncation_cutoff # 前8层
 
     def generate(self, lod, blend_factor, z=None, count=32, remove_blob=False):
         if z is None:
             z = torch.randn(count, self.latent_size)
         styles = self.mapping(z)
 
-        if self.dlatent_avg_beta is not None:
+        if self.dlatent_avg_beta is not None: #让原向量以中心向量 dlatent_avg.buff.data 为中心，按比例self.dlatent_avg_beta=0.995围绕中心向量拉近，
             with torch.no_grad():
                 batch_avg = styles.mean(dim=0)
-                self.dlatent_avg.buff.data.lerp_(batch_avg.data, 1.0 - self.dlatent_avg_beta)
+                self.dlatent_avg.buff.data.lerp_(batch_avg.data, 1.0 - self.dlatent_avg_beta) # avg.lerp_( x , 1-0.995 )
 
         if self.style_mixing_prob is not None:
             if random.random() < self.style_mixing_prob:
-                z2 = torch.randn(count, self.latent_size)
+                z2 = torch.randn(count, self.latent_size) # z2 : [32, 512]
                 styles2 = self.mapping(z2)
 
                 layer_idx = torch.arange(self.mapping.num_layers)[np.newaxis, :, np.newaxis]
@@ -68,7 +68,7 @@ class Model(nn.Module): #三个网络 Gp Gs D 的封装
             layer_idx = torch.arange(self.mapping.num_layers)[np.newaxis, :, np.newaxis] # shape:[1,18,1], layer_idx = [0,1,2,3,4,5,6。。。，17]
             ones = torch.ones(layer_idx.shape, dtype=torch.float32) # shape:[1,18,1], ones = [1,1,1,1,1,1,1,1]
             coefs = torch.where(layer_idx < self.truncation_cutoff, self.truncation_psi * ones, ones) # 18个变量前8个裁剪比例truncation_psi
-            styles = torch.lerp(self.dlatent_avg.buff.data, styles, coefs)
+            styles = torch.lerp(self.dlatent_avg.buff.data, styles, coefs) # avg + (styles-avg) * 0.7
 
         rec = self.generator.forward(styles, lod, blend_factor, remove_blob) # styles:[-1 , 18, 512]
         return rec
