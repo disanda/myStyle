@@ -157,7 +157,7 @@ if __name__ == "__main__":
 	resultPath1_2 = resultPath+"/models"
 	if not os.path.exists(resultPath1_2): os.mkdir(resultPath1_2)
 
-	center_tensor = torch.load('./center_tensor.pt')
+	center_tensor = torch.load('./center_tensor.pt').to('cuda')
 
 	train(center_tensor)
 
