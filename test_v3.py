@@ -14,19 +14,19 @@ def set_seed(seed):
     torch.backends.cudnn.deterministic = True
 
 #-------测试G和pgE在PG下的分辨率情况------------
-G = Generator(startf=16, maxf=512, layer_count=9, latent_size=512, channels=3)
-G.load_state_dict(torch.load('./pre-model/Gs_dict.pth'))
-Gm = Mapping(num_layers=18, mapping_layers=8, latent_size=512, dlatent_size=512, mapping_fmaps=512)
-Gm.load_state_dict(torch.load('./pre-model/Gm_dict.pth')) 
+# G = Generator(startf=16, maxf=512, layer_count=9, latent_size=512, channels=3)
+# G.load_state_dict(torch.load('./pre-model/Gs_dict.pth'))
+# Gm = Mapping(num_layers=18, mapping_layers=8, latent_size=512, dlatent_size=512, mapping_fmaps=512)
+# Gm.load_state_dict(torch.load('./pre-model/Gm_dict.pth')) 
 
-i=9
-lod = 8
-set_seed(i)
-latents = torch.randn(5, 512)
+# i=9
+# lod = 8
+# set_seed(i)
+# latents = torch.randn(5, 512)
 
-with torch.no_grad():
-	latents = Gm(latents) 
-	img = G.forward(latents,lod=lod) # lod = 8 -> 1024
+# with torch.no_grad():
+# 	latents = Gm(latents) 
+# 	img = G.forward(latents,lod=lod) # lod = 8 -> 1024
 # save_image((img+1)/2, 'lod%d.png'%lod)
 
 
@@ -39,24 +39,25 @@ with torch.no_grad():
 #-----------测试不同结构BE的pre-model加载情况
 
 #import module.BE as BE
-# import module.BE_reTune as BE
-# E = BE.BE()
+import module.BE_Residual as BE
+E = BE.BE()
 
 # #E.load_state_dict(torch.load('/Users/apple/Desktop/myStyle/StyleGAN-v1/E_model_ep30000.pth',map_location=torch.device('cpu')),strict=False)
 
 # #先分析两个模型的keys差异
-# pretrained_dict = torch.load('/Users/apple/Desktop/myStyle/StyleGAN-v1/E_model_ep30000.pth',map_location=torch.device('cpu'))
-# model_dict = E.state_dict()
+pretrained_dict = torch.load('/Users/apple/Desktop/myStyle/StyleGAN-v1/pre-model/v6_2_E_model_ep10000.pth',map_location=torch.device('cpu'))
+model_dict = E.state_dict()
 
 #查找包含的差异keys的字符
-# for k,v in pretrained_dict.items():
-# 	if 'noise' in k:
-# 		k=k.replace('noise','kkk') ##替换字符
-# 		print(k)
+for k,v in model_dict.items():
+	if '2' in k and 'conv' not in k:
+		print(k)
+		pretrained_dict.pop(k)
+
 
 # 更新
-# model_dict.update(pretrained_dict2)
-# E.load_state_dict(model_dict) # strict=False
+model_dict.update(pretrained_dict)
+E.load_state_dict(model_dict,strict=False) # strict=False
 
 # with torch.no_grad():
 # 	latents = Gm(latents) 
@@ -83,11 +84,11 @@ with torch.no_grad():
 
 #------------------裁剪区域----------------
 
-img2 = img[:,:,:,128:-128]
-print(img2.shape)
-img3 = F.avg_pool2d(img2,2,2)
-print(img3.shape)
-save_image((img3+1)/2, 'column128_down_seed_%d.png'%i,nrow=5)
+# img2 = img[:,:,:,128:-128]
+# print(img2.shape)
+# img3 = F.avg_pool2d(img2,2,2)
+# print(img3.shape)
+# save_image((img3+1)/2, 'column128_down_seed_%d.png'%i,nrow=5)
 
 
 

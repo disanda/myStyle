@@ -10,23 +10,23 @@ from torch.nn import functional as F
 
 # G 改 E, 实际上需要用G Block改出E block, 完成逆序对称，在同样位置还原style潜码
 class BEBlock(nn.Module):
-    def __init__(self, inputs, outputs, latent_size, has_last_conv=True): #分辨率大于128用fused_scale,即conv完成上采样
+    def __init__(self, inputs, outputs, latent_size, has_last_conv=True):
         super().__init__()
         self.has_last_conv = has_last_conv
+
+        self.conv_1 = ln.Conv2d(inputs, inputs, 3, 1, 1, bias=False)
         self.noise_weight_1 = nn.Parameter(torch.Tensor(1, inputs, 1, 1))
         self.noise_weight_1.data.zero_()
         self.bias_1 = nn.Parameter(torch.Tensor(1, inputs, 1, 1))
         self.instance_norm_1 = nn.InstanceNorm2d(inputs, affine=False, eps=1e-8)
         self.inver_mod1 = ln.Linear(2 * inputs, latent_size, gain=1) # [n, 2c] -> [n,512]
-        self.conv_1 = ln.Conv2d(inputs, inputs, 3, 1, 1, bias=False)
 
-        self.noise_weight_2 = nn.Parameter(torch.Tensor(1, inputs, 1, 1))
-        self.noise_weight_2.data.zero_()
-        self.bias_2 = nn.Parameter(torch.Tensor(1, inputs, 1, 1))
-        self.instance_norm_2 = nn.InstanceNorm2d(inputs, affine=False, eps=1e-8)
-        self.inver_mod2 = ln.Linear(2 * inputs, latent_size, gain=1)
-        self.blur = Blur(inputs)
         self.conv_2 = ln.Conv2d(inputs, outputs, 3, 1, 1, bias=False)
+        self.noise_weight_2 = nn.Parameter(torch.Tensor(1, outputs, 1, 1))
+        self.noise_weight_2.data.zero_()
+        self.bias_2 = nn.Parameter(torch.Tensor(1, outputs, 1, 1))
+        self.instance_norm_2 = nn.InstanceNorm2d(outputs, affine=False, eps=1e-8)
+        self.inver_mod2 = ln.Linear(2*outputs, latent_size, gain=1)
 
         with torch.no_grad():
             self.bias_1.zero_()
@@ -54,11 +54,11 @@ class BEBlock(nn.Module):
         w2 = self.inver_mod2(style2.view(style2.shape[0],style2.shape[1])) # [b,512]
 
         if self.has_last_conv:
-            x = x + residual
+            x = 0.111*x + 0.889*residual
         else:
-            residual = downscale2d(x)
+            residual = downscale2d(residual)
             x = downscale2d(x)
-            x = x + residual
+            x = 0.111*x + 0.889*residual
         return x, w1, w2
 
 
@@ -74,12 +74,14 @@ class BE(nn.Module):
         outputs = startf*2
         resolution = 1024
 
-        from_RGB = nn.ModuleList()
+        self.FromRGB = FromRGB(channels, inputs)
+
+        #from_RGB = nn.ModuleList()
         for i in range(layer_count):
 
             has_last_conv = i+1 != layer_count
 
-            from_RGB.append(FromRGB(channels, inputs))
+            #from_RGB.append(FromRGB(channels, inputs))
             block = BEBlock(inputs, outputs, latent_size, has_last_conv)
 
             inputs = inputs*2
@@ -90,11 +92,10 @@ class BE(nn.Module):
             resolution /=2
             self.decode_block.append(block)
 
-        self.FromRGB = from_RGB
 
     #将w逆序，以保证和G的w顺序, block_num控制progressive
     def forward(self, x, block_num=9):
-        x = self.FromRGB[9-block_num](x)
+        x = self.FromRGB(x)
         w = torch.tensor(0)
         for i in range(9-block_num,9):
             x,w1,w2 = self.decode_block[i](x)

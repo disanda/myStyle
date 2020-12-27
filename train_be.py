@@ -2,7 +2,7 @@ import os
 import torch
 import torchvision
 from module.net import * # Generator,Mapping
-import module.BE as BE
+import module.BE_Residual as BE
 from module.custom_adam import LREQAdam
 import lpips
 from torch.nn import functional as F
@@ -25,7 +25,16 @@ def train(avg_tensor = None, coefs=0):
 	#Gs.requires_grad_(False)
 	Gm.buffer1 = avg_tensor
 	E = BE.BE()
-	E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V5_center_kl_inverse_all_res11-89/models/E_model_ep40000.pth'),strict=False)
+	#E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V5_center_kl_inverse_all_res11-89/models/E_model_ep40000.pth'),strict=False)
+
+	pretrained_dict = torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V6_3ImgLoss_Res0618_truncW_noUpgradeW/models/E_model_ep15000.pth')
+	model_dict = E.state_dict()
+	for k,v in model_dict.items():
+		if '2' in k and 'conv' not in k:
+			pretrained_dict.pop(k)
+	model_dict.update(pretrained_dict)
+	E.load_state_dict(model_dict,strict=False) # strict=False
+
 	Gs.cuda()
 	Gm.cuda()
 	E.cuda()
@@ -48,11 +57,6 @@ def train(avg_tensor = None, coefs=0):
 			imgs1 = Gs.forward(w1,8)
 
 		const2,w2 = E(imgs1.cuda())
-#lerp_center_truncation
-		if Gm.buffer1 is not None:
-			#batch_avg = w2.mean(dim=0) #让原向量以中心向量 dlatent_avg.buff.data 为中心，按比例self.dlatent_avg_beta=0.995围绕中心向量拉近
-			#Gm.buffer1.lerp_(batch_avg.data, 1.0 - 0.9995) # avg.lerp_( x , 1-0.995 ) ->  avg = avg + 0.005(avg - batch_avg)
-			w2 = torch.lerp(Gm.buffer1, w2, coefs) # avg + (styles-avg) * [0.7,0.7,...,1,1,1] 
 
 		imgs2=Gs.forward(w2,8)
 
@@ -147,7 +151,7 @@ def train(avg_tensor = None, coefs=0):
 				torch.save(Gm.buffer1,resultPath1_2+'/center_tensor_ep%d.pt'%epoch)
 
 if __name__ == "__main__":
-	resultPath = "./result/EB_V6_3ImgLoss_Res0618_truncW_noUpgradeW"
+	resultPath = "./result/EB_V7_newE_noEw_trunck"
 	if not os.path.exists(resultPath): os.mkdir(resultPath)
 
 	resultPath1_1 = resultPath+"/imgs"
