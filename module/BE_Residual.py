@@ -31,6 +31,8 @@ class BEBlock(nn.Module):
 
         if inputs != outputs:
             self.conv_3 = ln.Conv2d(inputs, outputs, 1 , 1, 0)
+        else:
+            self.conv_3 = None
 
         with torch.no_grad():
             self.bias_1.zero_()
@@ -57,7 +59,7 @@ class BEBlock(nn.Module):
         #style2 = torch.cat((mean2, std2), dim=1) # [b,2c,1,1]
         w2 = self.inver_mod2(std2.view(std2.shape[0],std2.shape[1])) # [b,512]
 
-        if self.conv_3:
+        if self.conv_3 != None:
             residual = self.conv_3(residual)
 
         if self.has_last_conv:
