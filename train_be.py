@@ -123,7 +123,7 @@ def train(avg_tensor = None, coefs=0):
 		loss_4.backward(retain_graph=True)
 		E_optimizer.step()
 
-		loss_all =  loss_1 + loss_2 + loss_3 + loss_4
+		loss_all =  loss_1  + loss_4 # loss_2 + loss_3
 		print('i_'+str(epoch)+'--loss_all__:'+str(loss_all.item())+'--loss_mse:'+str(loss_img_mse.item())+'--loss_lpips:'+str(loss_img_lpips.item())+'--loss_kl_img:'+str(loss_kl_img.item()))
 		#print('loss_img_mse_column:'+str(loss_img_mse_column.item())+'loss_img_lpips_column:'+str(loss_img_lpips_column.item())\
 		#	+'--loss_img_mse_center:'+str(loss_img_mse_center.item())+'--loss_lpips_center:'+str(loss_img_lpips_center.item()))
