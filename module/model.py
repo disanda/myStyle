@@ -52,7 +52,7 @@ class Model(nn.Module): #三个网络 Gp Gs D 的封装
         if self.dlatent_avg_beta is not None: #让原向量以中心向量 dlatent_avg.buff.data 为中心，按比例self.dlatent_avg_beta=0.995围绕中心向量拉近，
             with torch.no_grad():
                 batch_avg = styles.mean(dim=0)
-                self.dlatent_avg.buff.data.lerp_(batch_avg.data, 1.0 - self.dlatent_avg_beta) # avg.lerp_( x , 1-0.995 )
+                self.dlatent_avg.buff.data.lerp_(batch_avg.data, 1.0 - self.dlatent_avg_beta) # y.lerp(x,a) = y - (y-x)*a
 
         if self.style_mixing_prob is not None:
             if random.random() < self.style_mixing_prob:

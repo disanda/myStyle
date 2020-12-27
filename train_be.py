@@ -16,7 +16,7 @@ def set_seed(seed): #随机数设置
 	torch.cuda.manual_seed_all(seed)  # gpu
 	torch.backends.cudnn.deterministic = True
 
-def train(avg_tensor = None):
+def train(avg_tensor = None, coefs=0):
 	Gs = Generator(startf=16, maxf=512, layer_count=9, latent_size=512, channels=3)
 	Gs.load_state_dict(torch.load('./pre-model/Gs_dict.pth'))
 	Gm = Mapping(num_layers=18, mapping_layers=8, latent_size=512, dlatent_size=512, mapping_fmaps=512)
@@ -44,18 +44,15 @@ def train(avg_tensor = None):
 		set_seed(epoch%20000)
 		latents = torch.randn(batch_size, 512).to('cuda') #[32, 512]
 		with torch.no_grad(): #这里需要生成图片和变量
-			w1 = Gm(latents) #[batch_size,18,512]
+			w1 = Gm(latents,coefs_m=coefs) #[batch_size,18,512]
 			imgs1 = Gs.forward(w1,8)
 
 		const2,w2 = E(imgs1.cuda())
 #lerp_center_truncation
 		if Gm.buffer1 is not None:
-			batch_avg = w2.mean(dim=0) #让原向量以中心向量 dlatent_avg.buff.data 为中心，按比例self.dlatent_avg_beta=0.995围绕中心向量拉近
-			Gm.buffer1.lerp_(batch_avg.data, 1.0 - 0.9995) # avg.lerp_( x , 1-0.995 ) ->  avg = avg + 0.005(avg - batch_avg)
-			layer_idx = torch.arange(18)[np.newaxis, :, np.newaxis] # shape:[1,18,1], layer_idx = [0,1,2,3,4,5,6。。。，17]
-			ones = torch.ones(layer_idx.shape, dtype=torch.float32) # shape:[1,18,1], ones = [1,1,1,1,1,1,1,1]
-			coefs = torch.where(layer_idx < 8, 0.7 * ones, ones) # 18个变量前8个裁剪比例truncation_psi [0.7,0.7,...,1,1,1] 
-			w2 = torch.lerp(Gm.buffer1, w2, coefs.to('cuda')) # avg + (styles-avg) * 0.7
+			#batch_avg = w2.mean(dim=0) #让原向量以中心向量 dlatent_avg.buff.data 为中心，按比例self.dlatent_avg_beta=0.995围绕中心向量拉近
+			#Gm.buffer1.lerp_(batch_avg.data, 1.0 - 0.9995) # avg.lerp_( x , 1-0.995 ) ->  avg = avg + 0.005(avg - batch_avg)
+			w2 = torch.lerp(Gm.buffer1, w2, coefs) # avg + (styles-avg) * [0.7,0.7,...,1,1,1] 
 
 		imgs2=Gs.forward(w2,8)
 
@@ -150,7 +147,7 @@ def train(avg_tensor = None):
 				torch.save(Gm.buffer1,resultPath1_2+'/center_tensor_ep%d.pt'%epoch)
 
 if __name__ == "__main__":
-	resultPath = "./result/EB_V6_3ImgLoss_Res0618_truncW"
+	resultPath = "./result/EB_V6_3ImgLoss_Res0618_truncW_noUpgradeW"
 	if not os.path.exists(resultPath): os.mkdir(resultPath)
 
 	resultPath1_1 = resultPath+"/imgs"
@@ -160,8 +157,11 @@ if __name__ == "__main__":
 	if not os.path.exists(resultPath1_2): os.mkdir(resultPath1_2)
 
 	center_tensor = torch.load('./center_tensor.pt').to('cuda')
+	layer_idx = torch.arange(18)[np.newaxis, :, np.newaxis] # shape:[1,18,1], layer_idx = [0,1,2,3,4,5,6。。。，17]
+	ones = torch.ones(layer_idx.shape, dtype=torch.float32) # shape:[1,18,1], ones = [1,1,1,1,1,1,1,1]
+	coefs = torch.where(layer_idx < 8, 0.7 * ones, ones).to('cuda') # 18个变量前8个裁剪比例truncation_psi [0.7,0.7,...,1,1,1] 
 
-	train(center_tensor)
+	train(center_tensor,coefs)
 
 
 
