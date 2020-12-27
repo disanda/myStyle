@@ -66,11 +66,11 @@ def train(avg_tensor = None, coefs=0):
 
 		E_optimizer.zero_grad()
 #loss1
-		#loss_img_mse = loss_mse(imgs1,imgs2)
-		loss_img_mse_c1 = loss_mse(imgs1[:,0],imgs2[:,0])
-		loss_img_mse_c2 = loss_mse(imgs1[:,1],imgs2[:,1])
-		loss_img_mse_c3 = loss_mse(imgs1[:,2],imgs2[:,2])
-		loss_img_mse = max(loss_img_mse_c1,loss_img_mse_c2,loss_img_mse_c3)
+		loss_img_mse = loss_mse(imgs1,imgs2)
+		# loss_img_mse_c1 = loss_mse(imgs1[:,0],imgs2[:,0])
+		# loss_img_mse_c2 = loss_mse(imgs1[:,1],imgs2[:,1])
+		# loss_img_mse_c3 = loss_mse(imgs1[:,2],imgs2[:,2])
+		# loss_img_mse = max(loss_img_mse_c1,loss_img_mse_c2,loss_img_mse_c3)
 
 		imgs1_ = F.avg_pool2d(imgs1,2,2)
 		imgs2_ = F.avg_pool2d(imgs2,2,2)
@@ -145,7 +145,7 @@ def train(avg_tensor = None, coefs=0):
 
 		if epoch % 100 == 0:
 			test_img = torch.cat((imgs1[:3],imgs2[:3]))*0.5+0.5
-			torchvision.utils.save_image(test_img, resultPath1_1+'/ep%d.jpg'%(epoch)) # nrow=3
+			torchvision.utils.save_image(test_img, resultPath1_1+'/ep%d.jpg'%(epoch),nrow=3) # nrow=3
 			with open(resultPath+'/Loss.txt', 'a+') as f:
 				print('i_'+str(epoch)+'--loss_all__:'+str(loss_all.item())+'--loss_mse:'+str(loss_img_mse.item())+'--loss_lpips:'+str(loss_img_lpips.item())+'--loss_kl_img:'+str(loss_kl_img.item()),file=f)
 				print('loss_img_mse_column:'+str(loss_img_mse_column.item())+'loss_img_lpips_column:'+str(loss_img_lpips_column.item())\
