@@ -25,7 +25,7 @@ def train(avg_tensor = None, coefs=0):
 	#Gs.requires_grad_(False)
 	Gm.buffer1 = avg_tensor
 	E = BE.BE()
-	E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V5_center_kl_inverse_all_res11-89/models/E_model_ep40000.pth'),strict=False)
+	#E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V5_center_kl_inverse_all_res11-89/models/E_model_ep40000.pth'),strict=False)
 
 	pretrained_dict = torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V6_3ImgLoss_Res0618_truncW_noUpgradeW/models/E_model_ep15000.pth')
 	model_dict = E.state_dict()
