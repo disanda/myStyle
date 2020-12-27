@@ -36,7 +36,7 @@ def train(avg_tensor = None, coefs=0):
 	E.load_state_dict(model_dict,strict=False) # strict=False
 
 	Gs.cuda()
-	Gm.cuda()
+	#Gm.cuda()
 	E.cuda()
 	const_ = Gs.const
 
@@ -51,9 +51,9 @@ def train(avg_tensor = None, coefs=0):
 	const1 = const_.repeat(batch_size,1,1,1)
 	for epoch in range(120000):
 		set_seed(epoch%20000)
-		latents = torch.randn(batch_size, 512).to('cuda') #[32, 512]
+		latents = torch.randn(batch_size, 512) #[32, 512]
+		w1 = Gm(latents,coefs_m=coefs).to('cuda') #[batch_size,18,512]
 		with torch.no_grad(): #这里需要生成图片和变量
-			w1 = Gm(latents,coefs_m=coefs) #[batch_size,18,512]
 			imgs1 = Gs.forward(w1,8)
 
 		const2,w2 = E(imgs1.cuda())
@@ -160,10 +160,10 @@ if __name__ == "__main__":
 	resultPath1_2 = resultPath+"/models"
 	if not os.path.exists(resultPath1_2): os.mkdir(resultPath1_2)
 
-	center_tensor = torch.load('./center_tensor.pt').to('cuda')
+	center_tensor = torch.load('./center_tensor.pt')
 	layer_idx = torch.arange(18)[np.newaxis, :, np.newaxis] # shape:[1,18,1], layer_idx = [0,1,2,3,4,5,6。。。，17]
 	ones = torch.ones(layer_idx.shape, dtype=torch.float32) # shape:[1,18,1], ones = [1,1,1,1,1,1,1,1]
-	coefs = torch.where(layer_idx < 8, 0.7 * ones, ones).to('cuda') # 18个变量前8个裁剪比例truncation_psi [0.7,0.7,...,1,1,1] 
+	coefs = torch.where(layer_idx < 8, 0.7 * ones, ones) # 18个变量前8个裁剪比例truncation_psi [0.7,0.7,...,1,1,1] 
 
 	train(center_tensor,coefs)
 
