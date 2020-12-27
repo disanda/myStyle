@@ -66,6 +66,7 @@ class BEBlock(nn.Module):
             residual = downscale2d(residual)
             x = downscale2d(x)
             x = 0.111*x + 0.889*residual
+            print(x.shape)
         return x, w1, w2
 
 
