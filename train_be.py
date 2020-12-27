@@ -27,18 +27,6 @@ def train(avg_tensor = None, coefs=0):
 	E = BE.BE()
 	#E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V5_center_kl_inverse_all_res11-89/models/E_model_ep40000.pth'),strict=False)
 
-	pretrained_dict = torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V6_3ImgLoss_Res0618_truncW_noUpgradeW/models/E_model_ep15000.pth')
-	model_dict = E.state_dict()
-	for k,v in model_dict.items():
-		if ('2' in k and 'conv' not in k) or ('inver_mod1' in k):
-			pretrained_dict.pop(k)
-
-	model_dict.update(pretrained_dict)
-	E.load_state_dict(model_dict,strict=False) # strict=False
-
-	del pretrained_dict
-	del model_dict
-
 	Gs.cuda()
 	#Gm.cuda()
 	E.cuda()

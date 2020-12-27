@@ -54,6 +54,15 @@ for k,v in model_dict.items():
 		print(k)
 		pretrained_dict.pop(k)
 
+for k,v in model_dict.items():
+	if ('2' in k and 'conv' not in k) or ('inver_mod1' in k):
+		pretrained_dict.pop(k)
+
+model_dict.update(pretrained_dict)
+E.load_state_dict(model_dict,strict=False) # strict=False
+
+del pretrained_dict
+del model_dict
 
 # 更新
 model_dict.update(pretrained_dict)
