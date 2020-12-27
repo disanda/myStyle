@@ -88,9 +88,9 @@ def train(avg_tensor = None, coefs=0):
 
 		imgs1_ = F.avg_pool2d(imgs1,2,2)
 		imgs2_ = F.avg_pool2d(imgs2,2,2)
-		# imgs1__ = F.avg_pool2d(imgs1_,2,2)
-		# imgs2__ = F.avg_pool2d(imgs2_,2,2)
-		loss_img_lpips = loss_lpips(imgs1_,imgs2_).mean()
+		imgs1__ = F.avg_pool2d(imgs1_,2,2)
+		imgs2__ = F.avg_pool2d(imgs2_,2,2)
+		loss_img_lpips = loss_lpips(imgs1__,imgs2__).mean()
 
 		y1_imgs, y2_imgs = torch.nn.functional.softmax(imgs1_),torch.nn.functional.softmax(imgs2_)
 		loss_kl_img = loss_kl(torch.log(y2_imgs),y1_imgs) #D_kl(True=y1_imgs||Fake=y2_imgs)
