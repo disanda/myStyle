@@ -145,7 +145,7 @@ def train(avg_tensor = None, coefs=0):
 				#torch.save(Gm.buffer1,resultPath1_2+'/center_tensor_ep%d.pt'%epoch)
 
 if __name__ == "__main__":
-	resultPath = "./result/EB_V78_newE_noEw_Ebias"
+	resultPath = "./result/EB_V8_newE_noEw_Ebias"
 	if not os.path.exists(resultPath): os.mkdir(resultPath)
 
 	resultPath1_1 = resultPath+"/imgs"
