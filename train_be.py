@@ -30,11 +30,7 @@ def train(avg_tensor = None, coefs=0):
 	pretrained_dict = torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V6_3ImgLoss_Res0618_truncW_noUpgradeW/models/E_model_ep15000.pth')
 	model_dict = E.state_dict()
 	for k,v in model_dict.items():
-		if '2' in k and 'conv' not in k:
-			pretrained_dict.pop(k)
-
-	for k,v in model_dict.items():
-		if 'inver_mod1' in k:
+		if ('2' in k and 'conv' not in k) or ('inver_mod1' in k):
 			pretrained_dict.pop(k)
 
 	model_dict.update(pretrained_dict)
