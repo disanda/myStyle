@@ -34,7 +34,7 @@ def train(avg_tensor = None, coefs=0):
 			pretrained_dict.pop(k)
 
 	for k,v in model_dict.items():
-		if 'inver_mod1.weight' in k:
+		if 'inver_mod1' in k:
 			pretrained_dict.pop(k)
 
 	model_dict.update(pretrained_dict)
