@@ -105,7 +105,6 @@ class BE(nn.Module):
     #将w逆序，以保证和G的w顺序, block_num控制progressive
     def forward(self, x, block_num=9):
         x = self.FromRGB(x)
-        print(x.shape)
         w = torch.tensor(0)
         for i in range(9-block_num,9):
             x,w1,w2 = self.decode_block[i](x)
@@ -114,5 +113,4 @@ class BE(nn.Module):
                 w = w_ # [b,n,512]
             else:
                 w = torch.cat((w_,w),dim=1)
-            #print(w.shape)
         return x, w
