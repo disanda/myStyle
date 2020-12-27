@@ -61,12 +61,11 @@ class BEBlock(nn.Module):
             residual = self.conv_3(residual)
 
         if self.has_last_conv:
-            x = 0.111*x + 0.889*residual
-        else:
             residual = downscale2d(residual)
             x = downscale2d(x)
             x = 0.111*x + 0.889*residual
-            print(x.shape)
+        else:
+            x = 0.111*x + 0.889*residual
         return x, w1, w2
 
 

@@ -25,19 +25,19 @@ def train(avg_tensor = None, coefs=0):
 	#Gs.requires_grad_(False)
 	Gm.buffer1 = avg_tensor
 	E = BE.BE()
-	#E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V5_center_kl_inverse_all_res11-89/models/E_model_ep40000.pth'),strict=False)
+	E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V5_center_kl_inverse_all_res11-89/models/E_model_ep40000.pth'),strict=False)
 
-	# pretrained_dict = torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V6_3ImgLoss_Res0618_truncW_noUpgradeW/models/E_model_ep15000.pth')
-	# model_dict = E.state_dict()
-	# for k,v in model_dict.items():
-	# 	if ('2' in k and 'conv' not in k) or ('inver_mod1' in k):
-	# 		pretrained_dict.pop(k)
+	pretrained_dict = torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V6_3ImgLoss_Res0618_truncW_noUpgradeW/models/E_model_ep15000.pth')
+	model_dict = E.state_dict()
+	for k,v in model_dict.items():
+		if ('2' in k and 'conv' not in k) or ('inver_mod1' in k):
+			pretrained_dict.pop(k)
 
-	# model_dict.update(pretrained_dict)
-	# E.load_state_dict(model_dict,strict=False) # strict=False
+	model_dict.update(pretrained_dict)
+	E.load_state_dict(model_dict,strict=False) # strict=False
 
-	# del pretrained_dict
-	# del model_dict
+	del pretrained_dict
+	del model_dict
 
 	Gs.cuda()
 	#Gm.cuda()
@@ -51,7 +51,7 @@ def train(avg_tensor = None, coefs=0):
 	loss_lpips = lpips.LPIPS(net='vgg').to('cuda')
 	loss_kl = torch.nn.KLDivLoss()
 
-	batch_size = 1
+	batch_size = 3
 	const1 = const_.repeat(batch_size,1,1,1)
 	for epoch in range(120000):
 		set_seed(epoch%20000)
@@ -144,7 +144,7 @@ def train(avg_tensor = None, coefs=0):
 		print('-')
 
 		if epoch % 100 == 0:
-			test_img = torch.cat((imgs1[:1],imgs2[:1]))*0.5+0.5
+			test_img = torch.cat((imgs1[:3],imgs2[:3]))*0.5+0.5
 			torchvision.utils.save_image(test_img, resultPath1_1+'/ep%d.jpg'%(epoch)) # nrow=3
 			with open(resultPath+'/Loss.txt', 'a+') as f:
 				print('i_'+str(epoch)+'--loss_all__:'+str(loss_all.item())+'--loss_mse:'+str(loss_img_mse.item())+'--loss_lpips:'+str(loss_img_lpips.item())+'--loss_kl_img:'+str(loss_kl_img.item()),file=f)
