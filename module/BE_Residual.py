@@ -15,16 +15,10 @@ class BEBlock(nn.Module):
         self.has_last_conv = has_last_conv
 
         self.conv_1 = ln.Conv2d(inputs, inputs, 3, 1, 1, bias=False)
-        self.noise_weight_1 = nn.Parameter(torch.Tensor(1, inputs, 1, 1))
-        self.noise_weight_1.data.zero_()
-        self.bias_1 = nn.Parameter(torch.Tensor(1, inputs, 1, 1))
         self.instance_norm_1 = nn.InstanceNorm2d(inputs, affine=False, eps=1e-8)
         self.inver_mod1 = ln.Linear(inputs, latent_size, gain=1) # [n, c] -> [n,512]
 
         self.conv_2 = ln.Conv2d(inputs, outputs, 3, 1, 1, bias=False)
-        self.noise_weight_2 = nn.Parameter(torch.Tensor(1, outputs, 1, 1))
-        self.noise_weight_2.data.zero_()
-        self.bias_2 = nn.Parameter(torch.Tensor(1, outputs, 1, 1))
         self.instance_norm_2 = nn.InstanceNorm2d(outputs, affine=False, eps=1e-8)
         self.inver_mod2 = ln.Linear(outputs, latent_size, gain=1)
 
@@ -34,14 +28,9 @@ class BEBlock(nn.Module):
         else:
             self.conv_3 = None
 
-        with torch.no_grad():
-            self.bias_1.zero_()
-            self.bias_2.zero_()
-
     def forward(self, x):
         residual = x
         x = self.conv_1(x)
-        x = torch.addcmul(x, value=1.0, tensor1=self.noise_weight_1, tensor2=torch.randn([x.shape[0], 1, x.shape[2], x.shape[3]]).to(x.device))
         x = F.leaky_relu(x, 0.2)
         x = self.instance_norm_1(x)
         mean1 = torch.mean(x, dim=[2, 3], keepdim=True) # [b, c, 1, 1]
@@ -51,7 +40,6 @@ class BEBlock(nn.Module):
 
 
         x = self.conv_2(x)
-        x = torch.addcmul(x, value=1.0, tensor1=self.noise_weight_2, tensor2=torch.randn([x.shape[0], 1, x.shape[2], x.shape[3]]).to(x.device))
         x = F.leaky_relu(x, 0.2)
         x = self.instance_norm_2(x)
         mean2 = torch.mean(x, dim=[2, 3], keepdim=True) # [b, c, 1, 1]
