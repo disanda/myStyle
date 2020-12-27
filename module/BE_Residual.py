@@ -19,14 +19,15 @@ class BEBlock(nn.Module):
         self.noise_weight_1.data.zero_()
         self.bias_1 = nn.Parameter(torch.Tensor(1, inputs, 1, 1))
         self.instance_norm_1 = nn.InstanceNorm2d(inputs, affine=False, eps=1e-8)
-        self.inver_mod1 = ln.Linear(2 * inputs, latent_size, gain=1) # [n, 2c] -> [n,512]
+        self.inver_mod1 = ln.Linear(inputs, latent_size, gain=1) # [n, c] -> [n,512]
 
         self.conv_2 = ln.Conv2d(inputs, outputs, 3, 1, 1, bias=False)
         self.noise_weight_2 = nn.Parameter(torch.Tensor(1, outputs, 1, 1))
         self.noise_weight_2.data.zero_()
         self.bias_2 = nn.Parameter(torch.Tensor(1, outputs, 1, 1))
         self.instance_norm_2 = nn.InstanceNorm2d(outputs, affine=False, eps=1e-8)
-        self.inver_mod2 = ln.Linear(2*outputs, latent_size, gain=1)
+        self.inver_mod2 = ln.Linear(outputs, latent_size, gain=1)
+
 
         if inputs != outputs:
             self.conv_3 = ln.Conv2d(inputs, outputs, 1 , 1, 0)
@@ -43,8 +44,8 @@ class BEBlock(nn.Module):
         x = self.instance_norm_1(x)
         mean1 = torch.mean(x, dim=[2, 3], keepdim=True) # [b, c, 1, 1]
         std1 = torch.sqrt(torch.mean((x - mean1) ** 2, dim=[2, 3], keepdim=True))  # [b, c, 1, 1]
-        style1 = torch.cat((mean1, std1), dim=1) # [b,2c,1,1]
-        w1 = self.inver_mod1(style1.view(style1.shape[0],style1.shape[1])) # [b,2c]->[b,512]
+        #style1 = torch.cat((mean1, std1), dim=1) # [b,2c,1,1]
+        w1 = self.inver_mod1(std1.view(std1.shape[0],std1.shape[1])) # [b,2c]->[b,512]
 
 
         x = self.conv_2(x)
@@ -53,8 +54,8 @@ class BEBlock(nn.Module):
         x = self.instance_norm_2(x)
         mean2 = torch.mean(x, dim=[2, 3], keepdim=True) # [b, c, 1, 1]
         std2 = torch.sqrt(torch.mean((x - mean2) ** 2, dim=[2, 3], keepdim=True))  # [b, c, 1, 1]
-        style2 = torch.cat((mean2, std2), dim=1) # [b,2c,1,1]
-        w2 = self.inver_mod2(style2.view(style2.shape[0],style2.shape[1])) # [b,512]
+        #style2 = torch.cat((mean2, std2), dim=1) # [b,2c,1,1]
+        w2 = self.inver_mod2(std2.view(std2.shape[0],std2.shape[1])) # [b,512]
 
         if self.conv_3:
             residual = self.conv_3(residual)
