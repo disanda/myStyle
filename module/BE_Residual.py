@@ -28,6 +28,9 @@ class BEBlock(nn.Module):
         self.instance_norm_2 = nn.InstanceNorm2d(outputs, affine=False, eps=1e-8)
         self.inver_mod2 = ln.Linear(2*outputs, latent_size, gain=1)
 
+        if inputs != outputs:
+            self.conv_3 = ln.Conv2d(inputs, outputs, 1 , 1, 0)
+
         with torch.no_grad():
             self.bias_1.zero_()
             self.bias_2.zero_()
@@ -52,6 +55,9 @@ class BEBlock(nn.Module):
         std2 = torch.sqrt(torch.mean((x - mean2) ** 2, dim=[2, 3], keepdim=True))  # [b, c, 1, 1]
         style2 = torch.cat((mean2, std2), dim=1) # [b,2c,1,1]
         w2 = self.inver_mod2(style2.view(style2.shape[0],style2.shape[1])) # [b,512]
+
+        if self.conv_3:
+            residual = self.conv_3(residual)
 
         if self.has_last_conv:
             x = 0.111*x + 0.889*residual
