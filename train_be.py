@@ -36,6 +36,9 @@ def train(avg_tensor = None, coefs=0):
 	model_dict.update(pretrained_dict)
 	E.load_state_dict(model_dict,strict=False) # strict=False
 
+	del pretrained_dict
+	del model_dict
+
 	Gs.cuda()
 	#Gm.cuda()
 	E.cuda()
