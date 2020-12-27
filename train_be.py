@@ -25,7 +25,33 @@ def train(avg_tensor = None, coefs=0):
 	#Gs.requires_grad_(False)
 	Gm.buffer1 = avg_tensor
 	E = BE.BE()
-	E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V6_3ImgLoss_Res0618_truncW_noUpgradeW/models/E_model_ep15000.pth'),strict=False)
+	#E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V6_3ImgLoss_Res0618_truncW_noUpgradeW/models/E_model_ep15000.pth'),strict=False)
+	model_dict = E.state_dict()
+	pretrained_dict = torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V6_3ImgLoss_Res0618_truncW_noUpgradeW/models/E_model_ep15000.pth')
+	for k,v in model_dict.items():
+		if 'decode_block.0.noise_weight_2' in k:
+			pretrained_dict.pop(k)
+		if 'decode_block.1.noise_weight_2' in k:
+			pretrained_dict.pop(k)
+		if 'decode_block.2.noise_weight_2' in k:
+			pretrained_dict.pop(k)
+		if 'decode_block.3.noise_weight_2' in k:
+			pretrained_dict.pop(k)
+		if 'decode_block.4.noise_weight_2' in k:
+			pretrained_dict.pop(k)
+		if 'decode_block.0.bias_2' in k:
+			pretrained_dict.pop(k)
+		if 'decode_block.1.bias_2' in k:
+			pretrained_dict.pop(k)
+		if 'decode_block.2.bias_2' in k:
+			pretrained_dict.pop(k)
+		if 'decode_block.3.bias_2' in k:
+			pretrained_dict.pop(k)
+		if 'decode_block.4.bias_2' in k:
+			pretrained_dict.pop(k)
+
+	model_dict.update(pretrained_dict)
+	E.load_state_dict(model_dict,strict=False)
 
 	Gs.cuda()
 	#Gm.cuda()
