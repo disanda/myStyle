@@ -460,7 +460,7 @@ class Mapping(nn.Module):
 
 
         if self.buffer1 is not None:
-            x = torch.lerp(self.buffer1.data, x, coefs) # avg + (styles-avg) * coefs
+            x = torch.lerp(self.buffer1.data, x, coefs_m) # avg + (styles-avg) * coefs
 
         return x
 
