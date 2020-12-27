@@ -2,7 +2,7 @@ import os
 import torch
 import torchvision
 from module.net import * # Generator,Mapping
-import module.BE_Residual as BE
+import module.BE_v2 as BE
 from module.custom_adam import LREQAdam
 import lpips
 from torch.nn import functional as F
@@ -25,7 +25,7 @@ def train(avg_tensor = None, coefs=0):
 	#Gs.requires_grad_(False)
 	Gm.buffer1 = avg_tensor
 	E = BE.BE()
-	#E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V5_center_kl_inverse_all_res11-89/models/E_model_ep40000.pth'),strict=False)
+	E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V6_3ImgLoss_Res0618_truncW_noUpgradeW/models/E_model_ep15000.pth'),strict=False)
 
 	Gs.cuda()
 	#Gm.cuda()
@@ -54,17 +54,17 @@ def train(avg_tensor = None, coefs=0):
 
 		E_optimizer.zero_grad()
 #loss1
-		loss_img_mse = loss_mse(imgs1,imgs2)
-		# loss_img_mse_c1 = loss_mse(imgs1[:,0],imgs2[:,0])
-		# loss_img_mse_c2 = loss_mse(imgs1[:,1],imgs2[:,1])
-		# loss_img_mse_c3 = loss_mse(imgs1[:,2],imgs2[:,2])
-		# loss_img_mse = max(loss_img_mse_c1,loss_img_mse_c2,loss_img_mse_c3)
+		#loss_img_mse = loss_mse(imgs1,imgs2)
+		loss_img_mse_c1 = loss_mse(imgs1[:,0],imgs2[:,0])
+		loss_img_mse_c2 = loss_mse(imgs1[:,1],imgs2[:,1])
+		loss_img_mse_c3 = loss_mse(imgs1[:,2],imgs2[:,2])
+		loss_img_mse = max(loss_img_mse_c1,loss_img_mse_c2,loss_img_mse_c3)
 
 		imgs1_ = F.avg_pool2d(imgs1,2,2)
 		imgs2_ = F.avg_pool2d(imgs2,2,2)
-		imgs1__ = F.avg_pool2d(imgs1_,2,2)
-		imgs2__ = F.avg_pool2d(imgs2_,2,2)
-		loss_img_lpips = loss_lpips(imgs1__,imgs2__).mean()
+		# imgs1__ = F.avg_pool2d(imgs1_,2,2)
+		# imgs2__ = F.avg_pool2d(imgs2_,2,2)
+		loss_img_lpips = loss_lpips(imgs1_,imgs2_).mean()
 
 		y1_imgs, y2_imgs = torch.nn.functional.softmax(imgs1_),torch.nn.functional.softmax(imgs2_)
 		loss_kl_img = loss_kl(torch.log(y2_imgs),y1_imgs) #D_kl(True=y1_imgs||Fake=y2_imgs)
@@ -75,31 +75,31 @@ def train(avg_tensor = None, coefs=0):
 		loss_1.backward(retain_graph=True)
 		E_optimizer.step()
 #loss2
-		# imgs_column1 = imgs1[:,:,:,128:-128]
-		# imgs_column2 = imgs2[:,:,:,128:-128]
-		# loss_img_mse_column = loss_mse(imgs_column1,imgs_column2)
+		imgs_column1 = imgs1[:,:,:,128:-128]
+		imgs_column2 = imgs2[:,:,:,128:-128]
+		loss_img_mse_column = loss_mse(imgs_column1,imgs_column2)
 
-		# imgs1_column_down = F.avg_pool2d(imgs_column1,2,2)
-		# imgs2_column_down = F.avg_pool2d(imgs_column2,2,2)
-		# loss_img_lpips_column = loss_lpips(imgs1_column_down,imgs2_column_down).mean()
+		imgs1_column_down = F.avg_pool2d(imgs_column1,2,2)
+		imgs2_column_down = F.avg_pool2d(imgs_column2,2,2)
+		loss_img_lpips_column = loss_lpips(imgs1_column_down,imgs2_column_down).mean()
 
-		# loss_2 = 19*loss_img_mse_column +7*loss_img_lpips_column
-		# loss_2.backward(retain_graph=True)
-		# E_optimizer.step()
+		loss_2 = 19*loss_img_mse_column +7*loss_img_lpips_column
+		loss_2.backward(retain_graph=True)
+		E_optimizer.step()
 #loss3
-		# imgs_center1 = imgs1[:,:,128:640,256:-256]
-		# imgs_center2 = imgs2[:,:,128:640,256:-256]
-		# loss_img_mse_center = loss_mse(imgs_center1,imgs_center2)
+		imgs_center1 = imgs1[:,:,128:640,256:-256]
+		imgs_center2 = imgs2[:,:,128:640,256:-256]
+		loss_img_mse_center = loss_mse(imgs_center1,imgs_center2)
 
-		# imgs1_c_down = F.avg_pool2d(imgs_center1,2,2)
-		# imgs2_c_down = F.avg_pool2d(imgs_center2,2,2)
-		# loss_img_lpips_center = loss_lpips(imgs1_c_down,imgs2_c_down).mean()
+		imgs1_c_down = F.avg_pool2d(imgs_center1,2,2)
+		imgs2_c_down = F.avg_pool2d(imgs_center2,2,2)
+		loss_img_lpips_center = loss_lpips(imgs1_c_down,imgs2_c_down).mean()
 
-		# loss_3 = 23*loss_img_mse_center +11*loss_img_lpips_center
-		# loss_3.backward(retain_graph=True)
-		# #loss_x = loss_1+loss_2+loss_3
-		# #loss_x.backward(retain_graph=True)
-		# E_optimizer.step()
+		loss_3 = 23*loss_img_mse_center +11*loss_img_lpips_center
+		loss_3.backward(retain_graph=True)
+		#loss_x = loss_1+loss_2+loss_3
+		#loss_x.backward(retain_graph=True)
+		E_optimizer.step()
 #loss4
 		loss_c = loss_mse(const1,const2) #没有这个const，梯度起初没法快速下降，很可能无法收敛, 这个惩罚即乘0.1后,效果大幅提升！
 		loss_c_m = loss_mse(const1.mean(),const2.mean())
@@ -119,14 +119,14 @@ def train(avg_tensor = None, coefs=0):
 		loss_kl_w = torch.where(torch.isnan(loss_kl_w),torch.full_like(loss_kl_w,0), loss_kl_w)
 		loss_kl_w = torch.where(torch.isinf(loss_kl_w),torch.full_like(loss_kl_w,1), loss_kl_w)
 
-		loss_4 = 0.02*loss_c+0.03*loss_c_m+0.03*loss_c_s+0.02*loss_w+0.03*loss_w_m+0.03*loss_w_s+ loss_kl_w  +loss_kl_c
+		loss_4 = 0.02*loss_c+0.03*loss_c_m+0.03*loss_c_s+0.02*loss_w+0.03*loss_w_m+0.03*loss_w_s+ loss_kl_w  + loss_kl_c
 		loss_4.backward(retain_graph=True)
 		E_optimizer.step()
 
-		loss_all =  loss_1  + loss_4 # loss_2 + loss_3
+		loss_all =  loss_1  + loss_4 + loss_2 + loss_3
 		print('i_'+str(epoch)+'--loss_all__:'+str(loss_all.item())+'--loss_mse:'+str(loss_img_mse.item())+'--loss_lpips:'+str(loss_img_lpips.item())+'--loss_kl_img:'+str(loss_kl_img.item()))
-		#print('loss_img_mse_column:'+str(loss_img_mse_column.item())+'loss_img_lpips_column:'+str(loss_img_lpips_column.item())\
-		#	+'--loss_img_mse_center:'+str(loss_img_mse_center.item())+'--loss_lpips_center:'+str(loss_img_lpips_center.item()))
+		print('loss_img_mse_column:'+str(loss_img_mse_column.item())+'loss_img_lpips_column:'+str(loss_img_lpips_column.item())\
+			+'--loss_img_mse_center:'+str(loss_img_mse_center.item())+'--loss_lpips_center:'+str(loss_img_lpips_center.item()))
 		print('loss_w:'+str(loss_w.item())+'--loss_w_m:'+str(loss_w_m.item())+'--loss_w_s:'+str(loss_w_s.item())+'--loss_kl_w:'+str(loss_kl_w.item())\
 			+'--loss_c:'+str(loss_c.item())+'--loss_c_m:'+str(loss_c_m.item())+'--loss_c_s:'+str(loss_c_s.item())+'--loss_kl_c:'+str(loss_kl_c.item()))
 		print('-')
@@ -136,16 +136,16 @@ def train(avg_tensor = None, coefs=0):
 			torchvision.utils.save_image(test_img, resultPath1_1+'/ep%d.jpg'%(epoch),nrow=3) # nrow=3
 			with open(resultPath+'/Loss.txt', 'a+') as f:
 				print('i_'+str(epoch)+'--loss_all__:'+str(loss_all.item())+'--loss_mse:'+str(loss_img_mse.item())+'--loss_lpips:'+str(loss_img_lpips.item())+'--loss_kl_img:'+str(loss_kl_img.item()),file=f)
-				#print('loss_img_mse_column:'+str(loss_img_mse_column.item())+'loss_img_lpips_column:'+str(loss_img_lpips_column.item())\
-				#+'--loss_img_mse_center:'+str(loss_img_mse_center.item())+'--loss_lpips_center:'+str(loss_img_lpips_center.item()),file=f)
+				print('loss_img_mse_column:'+str(loss_img_mse_column.item())+'loss_img_lpips_column:'+str(loss_img_lpips_column.item())\
+				+'--loss_img_mse_center:'+str(loss_img_mse_center.item())+'--loss_lpips_center:'+str(loss_img_lpips_center.item()),file=f)
 				print('loss_w:'+str(loss_w.item())+'--loss_w_m:'+str(loss_w_m.item())+'--loss_w_s:'+str(loss_w_s.item())+'--loss_kl_w:'+str(loss_kl_w.item())+'--loss_c:'+str(loss_c.item())\
 				+'--loss_c_m:'+str(loss_c_m.item())+'--loss_c_s:'+str(loss_c_s.item())+'--loss_kl_c:'+str(loss_kl_c.item()),file=f)
 			if epoch % 5000 == 0:
 				torch.save(E.state_dict(), resultPath1_2+'/E_model_ep%d.pth'%epoch)
-				torch.save(Gm.buffer1,resultPath1_2+'/center_tensor_ep%d.pt'%epoch)
+				#torch.save(Gm.buffer1,resultPath1_2+'/center_tensor_ep%d.pt'%epoch)
 
 if __name__ == "__main__":
-	resultPath = "./result/EB_V7_newE_noEw_trunck"
+	resultPath = "./result/EB_V78_newE_noEw_Ebias"
 	if not os.path.exists(resultPath): os.mkdir(resultPath)
 
 	resultPath1_1 = resultPath+"/imgs"
