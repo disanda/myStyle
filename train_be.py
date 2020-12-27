@@ -32,6 +32,8 @@ def train(avg_tensor = None, coefs=0):
 	for k,v in model_dict.items():
 		if '2' in k and 'conv' not in k:
 			pretrained_dict.pop(k)
+		if 'inver_mod1.weight' in k:
+			pretrained_dict.pop(k)
 	model_dict.update(pretrained_dict)
 	E.load_state_dict(model_dict,strict=False) # strict=False
 
