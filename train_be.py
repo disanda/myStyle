@@ -67,8 +67,8 @@ def train(avg_tensor = None, coefs=0):
 
 	batch_size = 3
 	const1 = const_.repeat(batch_size,1,1,1)
-	for epoch in range(12000,28001):
-		set_seed(epoch%20000+20000)
+	for epoch in range(25000,250001):
+		set_seed(epoch%25000+25000)
 		latents = torch.randn(batch_size, 512) #[32, 512]
 		w1 = Gm(latents,coefs_m=coefs).to('cuda') #[batch_size,18,512]
 		with torch.no_grad(): #这里需要生成图片和变量
