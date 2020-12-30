@@ -25,33 +25,33 @@ def train(avg_tensor = None, coefs=0):
 	#Gs.requires_grad_(False)
 	Gm.buffer1 = avg_tensor
 	E = BE.BE()
-	#E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V6_3ImgLoss_Res0618_truncW_noUpgradeW/models/E_model_ep15000.pth'),strict=False)
-	model_dict = E.state_dict()
-	pretrained_dict = torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V6_3ImgLoss_Res0618_truncW_noUpgradeW/models/E_model_ep15000.pth')
-	for k,v in model_dict.items():
-		if 'decode_block.0.noise_weight_2' in k:
-			pretrained_dict.pop(k)
-		if 'decode_block.1.noise_weight_2' in k:
-			pretrained_dict.pop(k)
-		if 'decode_block.2.noise_weight_2' in k:
-			pretrained_dict.pop(k)
-		if 'decode_block.3.noise_weight_2' in k:
-			pretrained_dict.pop(k)
-		if 'decode_block.4.noise_weight_2' in k:
-			pretrained_dict.pop(k)
-		if 'decode_block.0.bias_2' in k:
-			pretrained_dict.pop(k)
-		if 'decode_block.1.bias_2' in k:
-			pretrained_dict.pop(k)
-		if 'decode_block.2.bias_2' in k:
-			pretrained_dict.pop(k)
-		if 'decode_block.3.bias_2' in k:
-			pretrained_dict.pop(k)
-		if 'decode_block.4.bias_2' in k:
-			pretrained_dict.pop(k)
+	E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V8_newE_noEw_Ebias/models/E_model_ep115000.pth'),strict=False)
+	# model_dict = E.state_dict()
+	# pretrained_dict = torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V6_3ImgLoss_Res0618_truncW_noUpgradeW/models/E_model_ep15000.pth')
+	# for k,v in model_dict.items():
+	# 	if 'decode_block.0.noise_weight_2' in k:
+	# 		pretrained_dict.pop(k)
+	# 	if 'decode_block.1.noise_weight_2' in k:
+	# 		pretrained_dict.pop(k)
+	# 	if 'decode_block.2.noise_weight_2' in k:
+	# 		pretrained_dict.pop(k)
+	# 	if 'decode_block.3.noise_weight_2' in k:
+	# 		pretrained_dict.pop(k)
+	# 	if 'decode_block.4.noise_weight_2' in k:
+	# 		pretrained_dict.pop(k)
+	# 	if 'decode_block.0.bias_2' in k:
+	# 		pretrained_dict.pop(k)
+	# 	if 'decode_block.1.bias_2' in k:
+	# 		pretrained_dict.pop(k)
+	# 	if 'decode_block.2.bias_2' in k:
+	# 		pretrained_dict.pop(k)
+	# 	if 'decode_block.3.bias_2' in k:
+	# 		pretrained_dict.pop(k)
+	# 	if 'decode_block.4.bias_2' in k:
+	# 		pretrained_dict.pop(k)
 
-	model_dict.update(pretrained_dict)
-	E.load_state_dict(model_dict,strict=False)
+	# model_dict.update(pretrained_dict)
+	# E.load_state_dict(model_dict,strict=False)
 
 	Gs.cuda()
 	#Gm.cuda()
@@ -67,8 +67,8 @@ def train(avg_tensor = None, coefs=0):
 
 	batch_size = 3
 	const1 = const_.repeat(batch_size,1,1,1)
-	for epoch in range(120000):
-		set_seed(epoch%20000)
+	for epoch in range(12000,27001):
+		set_seed(epoch%3000)
 		latents = torch.randn(batch_size, 512) #[32, 512]
 		w1 = Gm(latents,coefs_m=coefs).to('cuda') #[batch_size,18,512]
 		with torch.no_grad(): #这里需要生成图片和变量
@@ -171,7 +171,7 @@ def train(avg_tensor = None, coefs=0):
 				#torch.save(Gm.buffer1,resultPath1_2+'/center_tensor_ep%d.pt'%epoch)
 
 if __name__ == "__main__":
-	resultPath = "./result/EB_V8_newE_noEw_Ebias"
+	resultPath = "./result/EB_V8_newE_noEw_Ebias_2"
 	if not os.path.exists(resultPath): os.mkdir(resultPath)
 
 	resultPath1_1 = resultPath+"/imgs"
