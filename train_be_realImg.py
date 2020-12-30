@@ -48,11 +48,11 @@ def train(avg_tensor = None, coefs=0):
 	loss_kl = torch.nn.KLDivLoss()
 
 	for epoch in range(300000):
-		if epoch%3 == 0
+		if epoch%3 == 0:
 			imgs1=image_loader('./ty_align.png')
-		if epoch%3 == 1
+		elif epoch%3 == 1:
 			imgs1=image_loader('./msk_align.png')
-		if epoch%3 == 1
+		else:
 			imgs1=image_loader('./wwm_align.png')
 
 		imgs1 = imgs1*2-1
