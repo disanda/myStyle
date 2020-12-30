@@ -60,7 +60,7 @@ def train(avg_tensor = None, coefs=0):
 
 		imgs2 = Gs.forward(w1,8)
 
-		const2,w2 = E(img2)
+		const2,w2 = E(imgs2)
 
 
 		E_optimizer.zero_grad()
