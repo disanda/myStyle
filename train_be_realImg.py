@@ -56,7 +56,8 @@ def train(avg_tensor = None, coefs=0):
 			imgs1=image_loader('./wwm_align.png')
 
 		imgs1 = imgs1*2-1
-		const1,w1 = E(imgs1.cuda())
+		imgs1 = imgs1.to('cuda')
+		const1,w1 = E(imgs1)
 
 		imgs2 = Gs.forward(w1,8)
 
