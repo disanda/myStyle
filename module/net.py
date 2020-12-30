@@ -456,11 +456,42 @@ class Mapping(nn.Module):
         for i in range(self.mapping_layers):
             x = getattr(self, "block_%d" % (i + 1))(x)
 
-        x = x.view(x.shape[0], 1, x.shape[1]).repeat(1, 18, 1) # [-1,18,512]
+        x = x.view(x.shape[0], 1, x.shape[1]).repeat(1, 18, 1) # [-1,1,512] -> [-1,18,512], 这里18层每层是一样的
 
 
         if self.buffer1 is not None:
             x = torch.lerp(self.buffer1.data, x, coefs_m) # avg + (styles-avg) * coefs
+
+        return x
+
+
+class Mapping2(nn.Module):
+    def __init__(self, num_layers=18, mapping_layers=8, latent_size=512, trunc_tensor=None, inverse=False):
+        super().__init__()
+        self.inverse = inverse
+        self.mapping_layers = mapping_layers # 8
+        self.num_layers = num_layers #映射的扩充的层数，由1层 扩充到 2*9 = 18层
+        for i in range(mapping_layers-1):
+            block = MappingBlock(latent_size, latent_size, lrmul=0.01)
+            setattr(self, "block_%d" % (i + 1), block)
+        if inverse == False:
+            block = MappingBlock(latent_size, num_layers*latent_size, lrmul=0.01)
+            setattr(self, "block_%d" % (mapping_layers), block)
+        else:
+            block = MappingBlock(num_layers*latent_size, latent_size, lrmul=0.01)
+            setattr(self, "block_%d" % (mapping_layers), block)
+
+    def forward(self, z, coefs_m=0):
+        x = pixel_norm(z)
+
+        if self.inverse ==False:
+            for i in range(self.mapping_layers):
+                x = getattr(self, "block_%d" % (i + 1))(x)
+            x = x.view(-1,self.num_layers,512)
+        else:
+            x = x.view(-1,self.num_layers*512)
+            for i in range(self.mapping_layers,0,-1):
+                x = getattr(self, "block_%d" % (i))(x)
 
         return x
 
