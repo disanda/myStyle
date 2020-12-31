@@ -42,6 +42,7 @@ def train(avg_tensor = None, coefs=0):
 
 	Gs.cuda()
 	E.cuda()
+	Gm.cuda()
 	Gm1.cuda()
 	Gm2.cuda()
 
@@ -54,8 +55,8 @@ def train(avg_tensor = None, coefs=0):
 	batch_size=5
 	for epoch in range(100000):
 		set_seed(epoch%20000)
-		z = torch.randn(batch_size, 512) #[32, 512]
-		w1 = Gm(z,coefs_m=coefs).to('cuda') #[batch_size,18,512]
+		z = torch.randn(batch_size, 512).to('cuda') #[32, 512]
+		w1 = Gm(z,coefs_m=coefs) #[batch_size,18,512]
 		with torch.no_grad(): #这里需要生成图片和变量
 			imgs1 = Gs.forward(w1,8)
 			const2,w2 = E(imgs1.cuda())
