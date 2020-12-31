@@ -105,7 +105,7 @@ def train(avg_tensor = None, coefs=0):
 				imgs1_ = Gs.forward(w,8)
 				imgs2_ = Gs.forward(w_,8)
 			test_img = torch.cat((imgs1_[:5],imgs2_[:5]))
-			test_img = torch.cat((imgs1,test_img[:5]))
+			test_img = torch.cat((imgs1[:5],test_img))
 			test_img = test_img*0.5+0.5
 			torchvision.utils.save_image(test_img, resultPath1_1+'/ep%d.jpg'%(epoch),nrow=5) # nrow=3
 			with open(resultPath+'/Loss.txt', 'a+') as f:
