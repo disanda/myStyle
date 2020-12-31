@@ -64,7 +64,8 @@ def train(avg_tensor = None, coefs=0):
 		w_m1 = Gm1(z) 
 		z_m2 = Gm2(w2)
 #loss1
-		Gm1_optimizer.zero_grad()
+		Gm_optimizer.zero_grad()
+		#Gm1_optimizer.zero_grad()
 		loss_m1_mse = loss_mse(w2,w_m1)
 		loss_m1_mse_mean = loss_mse(w2.mean(),w_m1.mean())
 		loss_m1_mse_std = loss_mse(w2.std(),w_m1.std())
@@ -78,7 +79,7 @@ def train(avg_tensor = None, coefs=0):
 		#loss_1.backward()
 		#Gm1_optimizer.step()
 #loss2
-		Gm2_optimizer.zero_grad()
+		#Gm2_optimizer.zero_grad()
 		loss_m2_mse = loss_mse(z,z_m2)
 		loss_m2_mse_mean = loss_mse(z.mean(),z_m2.mean())
 		loss_m2_mse_std = loss_mse(z.std(),z_m2.std())
@@ -130,7 +131,7 @@ def train(avg_tensor = None, coefs=0):
 
 
 if __name__ == "__main__":
-	resultPath = "./result/Gm_1&2_V10"
+	resultPath = "./result/Gm_1&2_V10_2"
 	if not os.path.exists(resultPath): os.mkdir(resultPath)
 
 	resultPath1_1 = resultPath+"/imgs"
