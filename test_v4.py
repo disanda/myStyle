@@ -34,7 +34,7 @@ G.load_state_dict(torch.load('./pre-model/Gs_dict.pth'))
 Gm = Mapping(num_layers=18, mapping_layers=8, latent_size=512, dlatent_size=512, mapping_fmaps=512)
 Gm.load_state_dict(torch.load('./pre-model/Gm_dict.pth')) 
 E = BE.BE()
-E.load_state_dict(torch.load('/Users/apple/Desktop/myStyle/model-result-v1/E/pre-model/E_real_model_ep5000.pth',map_location=torch.device('cpu')),strict=False)
+E.load_state_dict(torch.load('/Users/apple/Desktop/myStyle/model-result-v1/E/pre-model/E_v8_model_ep60000.pth',map_location=torch.device('cpu')),strict=False)
 
 #set_seed(epoch%20000)
 #latents = torch.randn(batch_size, 512).to('cuda') #[32, 512]
@@ -47,11 +47,11 @@ coefs = torch.where(layer_idx < 8, 0.7 * ones, ones)
 
 set_seed(0)
 with torch.no_grad(): #这里需要生成图片和变量
-	latents = torch.randn(4, 512)
+	latents = torch.randn(3, 512)
 	w1 = Gm(latents,coefs_m=coefs)
 	imgs1 = G.forward(w1,8)
 	const2,w2 = E(imgs1)
-	imgs2 = G.forward(w2,8)
+	imgs2 = G.forward(w2,8,remove_blob=True)
 
 imgs = torch.cat((imgs1,imgs2))
-save_image(imgs*0.5+0.5, 'img.png',nrow=4)
+save_image(imgs*0.5+0.5, 'img_blob.png',nrow=3)

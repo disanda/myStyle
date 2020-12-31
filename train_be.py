@@ -25,7 +25,7 @@ def train(avg_tensor = None, coefs=0):
 	#Gs.requires_grad_(False)
 	Gm.buffer1 = avg_tensor
 	E = BE.BE()
-	E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V8_newE_noEw_Ebias_2/models/E_model_ep25000.pth'),strict=False)
+	E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V8_newE_noEw_Ebias_2/models/E_model_ep65000.pth'),strict=False)
 	# model_dict = E.state_dict()
 	# pretrained_dict = torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V6_3ImgLoss_Res0618_truncW_noUpgradeW/models/E_model_ep15000.pth')
 	# for k,v in model_dict.items():
@@ -67,8 +67,8 @@ def train(avg_tensor = None, coefs=0):
 
 	batch_size = 3
 	const1 = const_.repeat(batch_size,1,1,1)
-	for epoch in range(25000,250001):
-		set_seed(epoch%25000+25000)
+	for epoch in range(0,250001):
+		set_seed(epoch%25000)
 		latents = torch.randn(batch_size, 512) #[32, 512]
 		w1 = Gm(latents,coefs_m=coefs).to('cuda') #[batch_size,18,512]
 		with torch.no_grad(): #这里需要生成图片和变量
@@ -121,7 +121,11 @@ def train(avg_tensor = None, coefs=0):
 		imgs2_c_down = F.avg_pool2d(imgs_center2,2,2)
 		loss_img_lpips_center = loss_lpips(imgs1_c_down,imgs2_c_down).mean()
 
-		loss_3 = 23*loss_img_mse_center +11*loss_img_lpips_center
+		imgs_blob1 = imgs1[:,:,924:,924:]
+		imgs_blob2 = imgs2[:,:,924:,924:]
+		loss_img_mse_blob = loss_mse(imgs_blob1,imgs_blob2)
+
+		loss_3 = 23*loss_img_mse_center +11*loss_img_lpips_center + loss_img_mse_blob*50
 		loss_3.backward(retain_graph=True)
 		#loss_x = loss_1+loss_2+loss_3
 		#loss_x.backward(retain_graph=True)
@@ -171,7 +175,7 @@ def train(avg_tensor = None, coefs=0):
 				#torch.save(Gm.buffer1,resultPath1_2+'/center_tensor_ep%d.pt'%epoch)
 
 if __name__ == "__main__":
-	resultPath = "./result/EB_V8_newE_noEw_Ebias_2"
+	resultPath = "./result/EB_V10_blob_mse"
 	if not os.path.exists(resultPath): os.mkdir(resultPath)
 
 	resultPath1_1 = resultPath+"/imgs"
