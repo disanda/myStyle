@@ -46,8 +46,8 @@ def train(avg_tensor = None, coefs=0):
 	Gm1.cuda()
 	Gm2.cuda()
 
-	Gm1_optimizer = LREQAdam([{'params': Gm1.parameters()},], lr=0.0015, betas=(0.0, 0.99), weight_decay=0)
-	Gm2_optimizer = LREQAdam([{'params': Gm2.parameters()},], lr=0.0015, betas=(0.0, 0.99), weight_decay=0)
+	Gm_optimizer = LREQAdam([{'params': Gm1.parameters()},{'params': Gm2.parameters()}], lr=0.0015, betas=(0.0, 0.99), weight_decay=0)
+	#Gm2_optimizer = LREQAdam([{'params': Gm2.parameters()},], lr=0.0015, betas=(0.0, 0.99), weight_decay=0)
 
 	loss_mse = torch.nn.MSELoss()
 	loss_kl = torch.nn.KLDivLoss()
@@ -74,9 +74,9 @@ def train(avg_tensor = None, coefs=0):
 		loss_kl_w = torch.where(torch.isnan(loss_kl_w),torch.full_like(loss_kl_w,0), loss_kl_w)
 		loss_kl_w = torch.where(torch.isinf(loss_kl_w),torch.full_like(loss_kl_w,1), loss_kl_w)
 
-		loss_1 = 10*loss_m1_mse + loss_m1_mse_mean + loss_m1_mse_std + loss_kl_w
-		loss_1.backward()
-		Gm1_optimizer.step()
+		loss_1 = loss_m1_mse + loss_m1_mse_mean + loss_m1_mse_std + loss_kl_w
+		#loss_1.backward()
+		#Gm1_optimizer.step()
 #loss2
 		Gm2_optimizer.zero_grad()
 		loss_m2_mse = loss_mse(z,z_m2)
@@ -89,12 +89,24 @@ def train(avg_tensor = None, coefs=0):
 		loss_kl_z = torch.where(torch.isinf(loss_kl_z),torch.full_like(loss_kl_z,1), loss_kl_z)
 
 		loss_2 = loss_m2_mse + loss_m2_mse_mean + loss_m2_mse_std + loss_kl_z
-		loss_2.backward()
-		Gm2_optimizer.step()
+		#loss_2.backward()
+		#Gm2_optimizer.step()
+#loss3 
+		imgs_m1 = Gs.forward(w_m1,8)
+		w_m2 = Gm1(z_m2)
+		imgs_m2 = Gs.forward(w_m2,8)
+		loss_m1_mse_img = loss_mse(imgs1,imgs_m1)
+		loss_m2_mse_img = loss_mse(imgs1,imgs_m2)
+		loss_m3_mse_img = loss_mse(imgs_m1,imgs_m2)
+		loss_3 = loss_m1_mse_img+loss_m2_mse_img+loss_m3_mse_img
 
-		loss_all =  loss_1  + loss_2 
+		loss_all =  loss_1  + loss_2 + loss_3
+		loss_all.backward()
+		Gm_optimizer.step()
+
 		print('i_'+str(epoch)+'--loss_all__:'+str(loss_all.item())+'--loss_m1_mse:'+str(loss_m1_mse.item())+'--loss_m1_mse_mean:'+str(loss_m1_mse_mean.item())+'--loss_m1_mse_std:'+str(loss_m1_mse_std.item())+'--loss_kl_w:'+str(loss_kl_w.item()))
 		print('--loss_m2_mse:'+str(loss_m2_mse.item())+'--loss_m2_mse_mean:'+str(loss_m2_mse_mean.item())+'--loss_m2_mse_std:'+str(loss_m2_mse_std.item())+'--loss_kl_z:'+str(loss_kl_z.item()))
+		print('--loss_m1_mse_img:'+str(loss_m1_mse_img.item())+'--loss_m2_mse_img:'+str(loss_m2_mse_img.item())+'--loss_m3_mse_img:'+str(loss_m3_mse_img.item()))
 		print('-')
 
 		if epoch % 100 == 0:
@@ -111,6 +123,7 @@ def train(avg_tensor = None, coefs=0):
 			with open(resultPath+'/Loss.txt', 'a+') as f:
 				print('i_'+str(epoch)+'--loss_all__:'+str(loss_all.item())+'--loss_m1_mse:'+str(loss_m1_mse.item())+'--loss_m1_mse_mean:'+str(loss_m1_mse_mean.item())+'--loss_m1_mse_std:'+str(loss_m1_mse_std.item())+'--loss_kl_w:'+str(loss_kl_w.item()),file=f)
 				print('--loss_m2_mse:'+str(loss_m2_mse.item())+'--loss_m2_mse_mean:'+str(loss_m2_mse_mean.item())+'--loss_m2_mse_std:'+str(loss_m2_mse_std.item())+'--loss_kl_z:'+str(loss_kl_z.item()),file=f)
+				print('--loss_m1_mse_img:'+str(loss_m1_mse_img.item())+'--loss_m2_mse_img:'+str(loss_m2_mse_img.item())+'--loss_m3_mse_img:'+str(loss_m3_mse_img.item()),file=f)
 			if epoch % 5000 == 0:
 				torch.save(Gm1.state_dict(), resultPath1_2+'/Gm1_model_ep%d.pth'%epoch)
 				torch.save(Gm2.state_dict(), resultPath1_2+'/Gm2_model_ep%d.pth'%epoch)
