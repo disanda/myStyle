@@ -52,7 +52,7 @@ def train(avg_tensor = None, coefs=0):
 	loss_mse = torch.nn.MSELoss()
 	loss_kl = torch.nn.KLDivLoss()
 
-	batch_size=20
+	batch_size=6
 	for epoch in range(100000):
 		set_seed(epoch%20000)
 		z = torch.randn(batch_size, 512).to('cuda') #[32, 512]
@@ -129,7 +129,6 @@ def train(avg_tensor = None, coefs=0):
 				torch.save(Gm1.state_dict(), resultPath1_2+'/Gm1_model_ep%d.pth'%epoch)
 				torch.save(Gm2.state_dict(), resultPath1_2+'/Gm2_model_ep%d.pth'%epoch)
 
-
 if __name__ == "__main__":
 	resultPath = "./result/Gm_1&2_V10_2"
 	if not os.path.exists(resultPath): os.mkdir(resultPath)
@@ -144,7 +143,6 @@ if __name__ == "__main__":
 	layer_idx = torch.arange(18)[np.newaxis, :, np.newaxis] # shape:[1,18,1], layer_idx = [0,1,2,3,4,5,6。。。，17]
 	ones = torch.ones(layer_idx.shape, dtype=torch.float32) # shape:[1,18,1], ones = [1,1,1,1,1,1,1,1]
 	coefs = torch.where(layer_idx < 8, 0.7 * ones, ones) # 18个变量前8个裁剪比例truncation_psi [0.7,0.7,...,1,1,1] 
-
 
 	train(center_tensor,coefs)
 
