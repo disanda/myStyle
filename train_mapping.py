@@ -38,7 +38,7 @@ def train(avg_tensor = None, coefs=0):
 	Gm1.load_state_dict(torch.load('./pre-model/Gm1.pth')) 
 	Gm2.load_state_dict(torch.load('./pre-model/Gm2.pth')) 
 	E = BE.BE()
-	E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V8_newE_noEw_Ebias/models/E_model_ep115000.pth'),strict=False)
+	E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V10_blob_mse/models/E_model_ep15000.pth'),strict=False)
 
 	Gs.cuda()
 	E.cuda()
@@ -74,7 +74,7 @@ def train(avg_tensor = None, coefs=0):
 		loss_kl_w = torch.where(torch.isnan(loss_kl_w),torch.full_like(loss_kl_w,0), loss_kl_w)
 		loss_kl_w = torch.where(torch.isinf(loss_kl_w),torch.full_like(loss_kl_w,1), loss_kl_w)
 
-		loss_1 = loss_m1_mse + loss_m1_mse_mean + loss_m1_mse_std + loss_kl_w
+		loss_1 = 10*loss_m1_mse + loss_m1_mse_mean + loss_m1_mse_std + loss_kl_w
 		loss_1.backward()
 		Gm1_optimizer.step()
 #loss2
@@ -105,7 +105,7 @@ def train(avg_tensor = None, coefs=0):
 				imgs1 = Gs.forward(w,8)
 				imgs2 = Gs.forward(w_,8)
 			test_img = torch.cat((imgs1,imgs2))*0.5+0.5
-			torchvision.utils.save_image(test_img, resultPath1_1+'/ep%d.jpg'%(epoch),nrow=2) # nrow=3
+			torchvision.utils.save_image(test_img, resultPath1_1+'/ep%d.jpg'%(epoch),nrow=5) # nrow=3
 			with open(resultPath+'/Loss.txt', 'a+') as f:
 				print('i_'+str(epoch)+'--loss_all__:'+str(loss_all.item())+'--loss_m1_mse:'+str(loss_m1_mse.item())+'--loss_m1_mse_mean:'+str(loss_m1_mse_mean.item())+'--loss_m1_mse_std:'+str(loss_m1_mse_std.item())+'--loss_kl_w:'+str(loss_kl_w.item()),file=f)
 				print('--loss_m2_mse:'+str(loss_m2_mse.item())+'--loss_m2_mse_mean:'+str(loss_m2_mse_mean.item())+'--loss_m2_mse_std:'+str(loss_m2_mse_std.item())+'--loss_kl_z:'+str(loss_kl_z.item()),file=f)
