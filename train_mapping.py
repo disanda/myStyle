@@ -102,9 +102,9 @@ def train(avg_tensor = None, coefs=0):
 				w = Gm1(z)
 				z2 = Gm2(w)
 				w_ = Gm1(z2) 
-				imgs1 = Gs.forward(w,8)
-				imgs2 = Gs.forward(w_,8)
-			test_img = torch.cat((imgs1[:5],imgs2[:5]))
+				imgs1_ = Gs.forward(w,8)
+				imgs2_ = Gs.forward(w_,8)
+			test_img = torch.cat((imgs1_[:5],imgs2_[:5]))
 			test_img = torch.cat((imgs1,test_img[:5]))
 			test_img = test_img*0.5+0.5
 			torchvision.utils.save_image(test_img, resultPath1_1+'/ep%d.jpg'%(epoch),nrow=5) # nrow=3
