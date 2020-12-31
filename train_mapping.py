@@ -42,6 +42,8 @@ def train(avg_tensor = None, coefs=0):
 
 	Gs.cuda()
 	E.cuda()
+	Gm1.cuda()
+	Gm2.cuda()
 
 	Gm1_optimizer = LREQAdam([{'params': Gm1.parameters()},], lr=0.0015, betas=(0.0, 0.99), weight_decay=0)
 	Gm2_optimizer = LREQAdam([{'params': Gm2.parameters()},], lr=0.0015, betas=(0.0, 0.99), weight_decay=0)
