@@ -125,7 +125,7 @@ def train(avg_tensor = None, coefs=0):
 		imgs_blob2 = imgs2[:,:,924:,924:]
 		loss_img_mse_blob = loss_mse(imgs_blob1,imgs_blob2)
 
-		loss_3 = 23*loss_img_mse_center +11*loss_img_lpips_center + loss_img_mse_blob*50
+		loss_3 = 23*loss_img_mse_center +11*loss_img_lpips_center + loss_img_mse_blob
 		loss_3.backward(retain_graph=True)
 		#loss_x = loss_1+loss_2+loss_3
 		#loss_x.backward(retain_graph=True)
