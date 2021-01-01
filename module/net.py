@@ -497,7 +497,7 @@ class Mapping2(nn.Module):
 
 class ResMappingBlock(nn.Module):
     def __init__(self, inputs, output, lrmul=0.01):
-        super(MappingBlock, self).__init__()
+        super().__init__()
         self.fc = ln.Linear(inputs, output, lrmul=lrmul)
 
     def forward(self, x):
