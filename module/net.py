@@ -495,27 +495,36 @@ class Mapping2(nn.Module):
 
         return x
 
+class ResMappingBlock(nn.Module):
+    def __init__(self, inputs, output, lrmul=0.01):
+        super(MappingBlock, self).__init__()
+        self.fc = ln.Linear(inputs, output, lrmul=lrmul)
+
+    def forward(self, x):
+        residual = x
+        x = 0.125*F.leaky_relu(self.fc(x), 0.2) + 0.875*residual
+
 class Mapping3(nn.Module):
     def __init__(self, num_layers=18, mapping_layers=8, latent_size=512):
         super().__init__()
         self.mapping_layers = mapping_layers # 8
         self.num_layers = num_layers #映射的扩充的层数，由1层 扩充到 2*9 = 18层
 
-        block = MappingBlock(512, 512*2, lrmul=0.01)
+        block = ResMappingBlock(512, 512*2, lrmul=0.01)
         setattr(self, "block_%d" % (1), block)
-        block = MappingBlock(512*2, 512*4, lrmul=0.01)
+        block = ResMappingBlock(512*2, 512*4, lrmul=0.01)
         setattr(self, "block_%d" % (2), block)
-        block = MappingBlock(512*4, 512*6, lrmul=0.01)
+        block = ResMappingBlock(512*4, 512*6, lrmul=0.01)
         setattr(self, "block_%d" % (3), block)
-        block = MappingBlock(512*6, 512*8, lrmul=0.01)
+        block = ResMappingBlock(512*6, 512*8, lrmul=0.01)
         setattr(self, "block_%d" % (4), block)
-        block = MappingBlock(512*8, 512*10, lrmul=0.01)
+        block = ResMappingBlock(512*8, 512*10, lrmul=0.01)
         setattr(self, "block_%d" % (5), block)
-        block = MappingBlock(512*10, 512*12, lrmul=0.01)
+        block = ResMappingBlock(512*10, 512*12, lrmul=0.01)
         setattr(self, "block_%d" % (6), block)
-        block = MappingBlock(512*12, 512*14, lrmul=0.01)
+        block = ResMappingBlock(512*12, 512*14, lrmul=0.01)
         setattr(self, "block_%d" % (7), block)
-        block = MappingBlock(512*14, 512*18, lrmul=0.01)
+        block = ResMappingBlock(512*14, 512*18, lrmul=0.01)
         setattr(self, "block_%d" % (8), block)
 
     def forward(self, z, coefs_m=0):
@@ -531,21 +540,21 @@ class Mapping4(nn.Module):
         self.mapping_layers = mapping_layers # 8
         self.num_layers = num_layers #映射的扩充的层数，由1层 扩充到 2*9 = 18层
 
-        block = MappingBlock(512*18, 512*14, lrmul=0.01)
+        block = ResMappingBlock(512*18, 512*14, lrmul=0.01)
         setattr(self, "block_%d" % (1), block)
-        block = MappingBlock(512*14, 512*12, lrmul=0.01)
+        block = ResMappingBlock(512*14, 512*12, lrmul=0.01)
         setattr(self, "block_%d" % (2), block)
-        block = MappingBlock(512*12, 512*10, lrmul=0.01)
+        block = ResMappingBlock(512*12, 512*10, lrmul=0.01)
         setattr(self, "block_%d" % (3), block)
-        block = MappingBlock(512*10, 512*8, lrmul=0.01)
+        block = ResMappingBlock(512*10, 512*8, lrmul=0.01)
         setattr(self, "block_%d" % (4), block)
-        block = MappingBlock(512*8, 512*6, lrmul=0.01)
+        block = ResMappingBlock(512*8, 512*6, lrmul=0.01)
         setattr(self, "block_%d" % (5), block)
-        block = MappingBlock(512*6, 512*4, lrmul=0.01)
+        block = ResMappingBlock(512*6, 512*4, lrmul=0.01)
         setattr(self, "block_%d" % (6), block)
-        block = MappingBlock(512*4, 512*2, lrmul=0.01)
+        block = ResMappingBlock(512*4, 512*2, lrmul=0.01)
         setattr(self, "block_%d" % (7), block)
-        block = MappingBlock(512*2, 512, lrmul=0.01)
+        block = ResMappingBlock(512*2, 512, lrmul=0.01)
         setattr(self, "block_%d" % (8), block)
 
     def forward(self, z, coefs_m=0):
