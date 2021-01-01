@@ -143,7 +143,7 @@ if __name__ == "__main__":
 	center_tensor = torch.load('./center_tensor.pt')
 	layer_idx = torch.arange(18)[np.newaxis, :, np.newaxis] # shape:[1,18,1], layer_idx = [0,1,2,3,4,5,6。。。，17]
 	ones = torch.ones(layer_idx.shape, dtype=torch.float32) # shape:[1,18,1], ones = [1,1,1,1,1,1,1,1]
-	coefs = torch.where(layer_idx < 8, 0.7 * ones, ones) # 18个变量前8个裁剪比例truncation_psi [0.7,0.7,...,1,1,1] 
+	coefs = torch.where(layer_idx < 8, 0.7 * ones, ones).to('cuda') # 18个变量前8个裁剪比例truncation_psi [0.7,0.7,...,1,1,1] 
 
 	train(center_tensor,coefs)
 
