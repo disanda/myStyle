@@ -106,7 +106,7 @@ def train(avg_tensor = None, coefs=0):
 
 		loss_3 =  loss_img_lpips  + loss_m1_mse_img*3
 
-		loss_all = loss_1+loss_3*100
+		loss_all = loss_1+loss_3*10
 		loss_all.backward()
 		Gm_optimizer.step()
 
