@@ -65,7 +65,7 @@ def train(avg_tensor = None, coefs=0):
 			const2,w2 = E(imgs1.cuda())
 			imgs2 = Gs.forward(w2,8)
 		w_m1 = Gm1(z) 
-		imgs3 = Gs.forward(w2,8) 
+		imgs3 = Gs.forward(w_m1,8) 
 #loss1
 		Gm_optimizer.zero_grad()
 		#Gm1_optimizer.zero_grad()
@@ -119,7 +119,7 @@ def train(avg_tensor = None, coefs=0):
 		if epoch % 100 == 0:
 			with torch.no_grad(): #这里需要生成图片和变量
 				test_img = torch.cat((imgs1[:5],imgs2[:5]))
-				test_img = torch.cat((imgs3[:5],test_img))
+				test_img = torch.cat((test_img,imgs3[:5]))
 				test_img = test_img*0.5+0.5
 			torchvision.utils.save_image(test_img, resultPath1_1+'/ep%d.jpg'%(epoch),nrow=5) # nrow=3
 			with open(resultPath+'/Loss.txt', 'a+') as f:
