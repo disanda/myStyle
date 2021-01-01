@@ -36,7 +36,7 @@ def train(avg_tensor = None, coefs=0):
 	Gm.buffer1 = avg_tensor
 
 	Gm1 = Mapping3()
-	Gm1.load_state_dict('/_yucheng/myStyle/myStyle-v1/result/Gm_1&2_V10_3/models/Gm1_model_ep10000.pth')
+	Gm1.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/Gm_1&2_V10_3/models/Gm1_model_ep10000.pth'))
 	#Gm2 = Mapping2(num_layers=18, mapping_layers=8, latent_size=512, inverse=True)
 	#Gm1.load_state_dict(torch.load('./pre-model/Gm1.pth')) 
 	#Gm2.load_state_dict(torch.load('./pre-model/Gm2.pth')) 
