@@ -118,8 +118,8 @@ def train(avg_tensor = None, coefs=0):
 
 		if epoch % 100 == 0:
 			with torch.no_grad(): #这里需要生成图片和变量
-				test_img = torch.cat((imgs1[:3],imgs2[:3]))
-				test_img = torch.cat((test_img,imgs3[:3]))
+				test_img = torch.cat((imgs1[:4],imgs2[:4]))
+				test_img = torch.cat((test_img,imgs3[:4]))
 				test_img = test_img*0.5+0.5
 			torchvision.utils.save_image(test_img, resultPath1_1+'/ep%d.jpg'%(epoch),nrow=3) # nrow=3
 			with open(resultPath+'/Loss.txt', 'a+') as f:
