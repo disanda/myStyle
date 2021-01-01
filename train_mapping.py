@@ -53,6 +53,7 @@ def train(avg_tensor = None, coefs=0):
 
 	loss_mse = torch.nn.MSELoss()
 	loss_kl = torch.nn.KLDivLoss()
+	loss_lpips = lpips.LPIPS(net='vgg').to('cuda')
 
 	batch_size=8
 	for epoch in range(100000):
