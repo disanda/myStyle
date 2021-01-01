@@ -33,10 +33,12 @@ def train(avg_tensor = None, coefs=0):
 	Gs.load_state_dict(torch.load('./pre-model/Gs_dict.pth')) 
 	Gm = Mapping(num_layers=18, mapping_layers=8, latent_size=512, dlatent_size=512, mapping_fmaps=512)
 	Gm.load_state_dict(torch.load('./pre-model/Gm_dict.pth')) 
-	Gm1 = Mapping2(num_layers=18, mapping_layers=8, latent_size=512)
-	Gm2 = Mapping2(num_layers=18, mapping_layers=8, latent_size=512, inverse=True)
-	Gm1.load_state_dict(torch.load('./pre-model/Gm1.pth')) 
-	Gm2.load_state_dict(torch.load('./pre-model/Gm2.pth')) 
+	Gm.buffer1 = avg_tensor
+
+	Gm1 = Mapping3()
+	#Gm2 = Mapping2(num_layers=18, mapping_layers=8, latent_size=512, inverse=True)
+	#Gm1.load_state_dict(torch.load('./pre-model/Gm1.pth')) 
+	#Gm2.load_state_dict(torch.load('./pre-model/Gm2.pth')) 
 	E = BE.BE()
 	E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V10_blob_mse/models/E_model_ep15000.pth'),strict=False)
 
@@ -44,15 +46,15 @@ def train(avg_tensor = None, coefs=0):
 	E.cuda()
 	Gm.cuda()
 	Gm1.cuda()
-	Gm2.cuda()
+	#Gm2.cuda()
 
-	Gm_optimizer = LREQAdam([{'params': Gm1.parameters()},{'params': Gm2.parameters()}], lr=0.0015, betas=(0.0, 0.99), weight_decay=0)
+	Gm_optimizer = LREQAdam([{'params': Gm1.parameters()},], lr=0.0015, betas=(0.0, 0.99), weight_decay=0)
 	#Gm2_optimizer = LREQAdam([{'params': Gm2.parameters()},], lr=0.0015, betas=(0.0, 0.99), weight_decay=0)
 
 	loss_mse = torch.nn.MSELoss()
 	loss_kl = torch.nn.KLDivLoss()
 
-	batch_size=6
+	batch_size=8
 	for epoch in range(100000):
 		set_seed(epoch%20000)
 		z = torch.randn(batch_size, 512).to('cuda') #[32, 512]
@@ -60,9 +62,9 @@ def train(avg_tensor = None, coefs=0):
 		with torch.no_grad(): #这里需要生成图片和变量
 			imgs1 = Gs.forward(w1,8)
 			const2,w2 = E(imgs1.cuda())
-
+			imgs2 = Gs.forward(w2,8)
 		w_m1 = Gm1(z) 
-		z_m2 = Gm2(w2)
+		imgs3 = Gs.forward(w2,8) 
 #loss1
 		Gm_optimizer.zero_grad()
 		#Gm1_optimizer.zero_grad()
@@ -80,57 +82,56 @@ def train(avg_tensor = None, coefs=0):
 		#Gm1_optimizer.step()
 #loss2
 		#Gm2_optimizer.zero_grad()
-		loss_m2_mse = loss_mse(z,z_m2)
-		loss_m2_mse_mean = loss_mse(z.mean(),z_m2.mean())
-		loss_m2_mse_std = loss_mse(z.std(),z_m2.std())
+		# loss_m2_mse = loss_mse(z,z_m2)
+		# loss_m2_mse_mean = loss_mse(z.mean(),z_m2.mean())
+		# loss_m2_mse_std = loss_mse(z.std(),z_m2.std())
 
-		y1_z, y2_z = torch.nn.functional.softmax(z),torch.nn.functional.softmax(z_m2)
-		loss_kl_z = loss_kl(torch.log(y2_z),y1_z) #D_kl(True=y1_z||Fake=y2_z)
-		loss_kl_z = torch.where(torch.isnan(loss_kl_z),torch.full_like(loss_kl_z,0), loss_kl_z)
-		loss_kl_z = torch.where(torch.isinf(loss_kl_z),torch.full_like(loss_kl_z,1), loss_kl_z)
+		# y1_z, y2_z = torch.nn.functional.softmax(z),torch.nn.functional.softmax(z_m2)
+		# loss_kl_z = loss_kl(torch.log(y2_z),y1_z) #D_kl(True=y1_z||Fake=y2_z)
+		# loss_kl_z = torch.where(torch.isnan(loss_kl_z),torch.full_like(loss_kl_z,0), loss_kl_z)
+		# loss_kl_z = torch.where(torch.isinf(loss_kl_z),torch.full_like(loss_kl_z,1), loss_kl_z)
 
-		loss_2 = loss_m2_mse + loss_m2_mse_mean + loss_m2_mse_std + loss_kl_z
+		# loss_2 = loss_m2_mse + loss_m2_mse_mean + loss_m2_mse_std + loss_kl_z
 		#loss_2.backward()
 		#Gm2_optimizer.step()
 #loss3 
-		imgs_m1 = Gs.forward(w_m1,8)
-		w_m2 = Gm1(z_m2)
-		imgs_m2 = Gs.forward(w_m2,8)
-		loss_m1_mse_img = loss_mse(imgs1,imgs_m1)
-		loss_m2_mse_img = loss_mse(imgs1,imgs_m2)
-		loss_m3_mse_img = loss_mse(imgs_m1,imgs_m2)
-		loss_3 = loss_m1_mse_img+loss_m2_mse_img+loss_m3_mse_img
+		loss_m1_mse_img = loss_mse(imgs2,imgs3)
+		#loss_3 = loss_m1_mse_img+loss_m2_mse_img+loss_m3_mse_img
 
-		loss_all =  loss_1  + loss_2 + loss_3
+		imgs2_ = F.avg_pool2d(imgs2,2,2)
+		imgs3_ = F.avg_pool2d(imgs3,2,2)
+
+		loss_img_lpips = loss_lpips(imgs2_,imgs3_).mean()
+
+		loss_3 =  loss_img_lpips  + loss_m1_mse_img
+
+		loss_all = loss_1+loss_3
 		loss_all.backward()
 		Gm_optimizer.step()
 
 		print('i_'+str(epoch)+'--loss_all__:'+str(loss_all.item())+'--loss_m1_mse:'+str(loss_m1_mse.item())+'--loss_m1_mse_mean:'+str(loss_m1_mse_mean.item())+'--loss_m1_mse_std:'+str(loss_m1_mse_std.item())+'--loss_kl_w:'+str(loss_kl_w.item()))
-		print('--loss_m2_mse:'+str(loss_m2_mse.item())+'--loss_m2_mse_mean:'+str(loss_m2_mse_mean.item())+'--loss_m2_mse_std:'+str(loss_m2_mse_std.item())+'--loss_kl_z:'+str(loss_kl_z.item()))
-		print('--loss_m1_mse_img:'+str(loss_m1_mse_img.item())+'--loss_m2_mse_img:'+str(loss_m2_mse_img.item())+'--loss_m3_mse_img:'+str(loss_m3_mse_img.item()))
+		#print('--loss_m2_mse:'+str(loss_m2_mse.item())+'--loss_m2_mse_mean:'+str(loss_m2_mse_mean.item())+'--loss_m2_mse_std:'+str(loss_m2_mse_std.item())+'--loss_kl_z:'+str(loss_kl_z.item()))
+		#print('--loss_m1_mse_img:'+str(loss_m1_mse_img.item())+'--loss_m2_mse_img:'+str(loss_m2_mse_img.item())+'--loss_m3_mse_img:'+str(loss_m3_mse_img.item()))
+		print('loss_img_lpips'+str(loss_img_lpips)+'--loss_m1_mse_img:'+str(loss_m1_mse_img.item()))
 		print('-')
 
 		if epoch % 100 == 0:
 			with torch.no_grad(): #这里需要生成图片和变量
-				w = Gm1(z)
-				z2 = Gm2(w)
-				w_ = Gm1(z2) 
-				imgs1_ = Gs.forward(w,8)
-				imgs2_ = Gs.forward(w_,8)
-			test_img = torch.cat((imgs1_[:5],imgs2_[:5]))
-			test_img = torch.cat((imgs1[:5],test_img))
+			test_img = torch.cat((imgs1[:5],imgs2[:5]))
+			test_img = torch.cat((imgs3[:5],test_img))
 			test_img = test_img*0.5+0.5
 			torchvision.utils.save_image(test_img, resultPath1_1+'/ep%d.jpg'%(epoch),nrow=5) # nrow=3
 			with open(resultPath+'/Loss.txt', 'a+') as f:
 				print('i_'+str(epoch)+'--loss_all__:'+str(loss_all.item())+'--loss_m1_mse:'+str(loss_m1_mse.item())+'--loss_m1_mse_mean:'+str(loss_m1_mse_mean.item())+'--loss_m1_mse_std:'+str(loss_m1_mse_std.item())+'--loss_kl_w:'+str(loss_kl_w.item()),file=f)
-				print('--loss_m2_mse:'+str(loss_m2_mse.item())+'--loss_m2_mse_mean:'+str(loss_m2_mse_mean.item())+'--loss_m2_mse_std:'+str(loss_m2_mse_std.item())+'--loss_kl_z:'+str(loss_kl_z.item()),file=f)
-				print('--loss_m1_mse_img:'+str(loss_m1_mse_img.item())+'--loss_m2_mse_img:'+str(loss_m2_mse_img.item())+'--loss_m3_mse_img:'+str(loss_m3_mse_img.item()),file=f)
+				#print('--loss_m2_mse:'+str(loss_m2_mse.item())+'--loss_m2_mse_mean:'+str(loss_m2_mse_mean.item())+'--loss_m2_mse_std:'+str(loss_m2_mse_std.item())+'--loss_kl_z:'+str(loss_kl_z.item()),file=f)
+				#print('--loss_m1_mse_img:'+str(loss_m1_mse_img.item())+'--loss_m2_mse_img:'+str(loss_m2_mse_img.item())+'--loss_m3_mse_img:'+str(loss_m3_mse_img.item()),file=f)
+				print('loss_img_lpips'+str(loss_img_lpips)+'--loss_m1_mse_img:'+str(loss_m1_mse_img.item()),file=f)
 			if epoch % 5000 == 0:
 				torch.save(Gm1.state_dict(), resultPath1_2+'/Gm1_model_ep%d.pth'%epoch)
-				torch.save(Gm2.state_dict(), resultPath1_2+'/Gm2_model_ep%d.pth'%epoch)
+				#torch.save(Gm2.state_dict(), resultPath1_2+'/Gm2_model_ep%d.pth'%epoch)
 
 if __name__ == "__main__":
-	resultPath = "./result/Gm_1&2_V10_2"
+	resultPath = "./result/Gm_1&2_V10_3"
 	if not os.path.exists(resultPath): os.mkdir(resultPath)
 
 	resultPath1_1 = resultPath+"/imgs"
