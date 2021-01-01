@@ -36,6 +36,7 @@ def train(avg_tensor = None, coefs=0):
 	Gm.buffer1 = avg_tensor
 
 	Gm1 = Mapping3()
+	Gm1.load_state_dict('/_yucheng/myStyle/myStyle-v1/result/Gm_1&2_V10_3/models/Gm1_model_ep10000.pth')
 	#Gm2 = Mapping2(num_layers=18, mapping_layers=8, latent_size=512, inverse=True)
 	#Gm1.load_state_dict(torch.load('./pre-model/Gm1.pth')) 
 	#Gm2.load_state_dict(torch.load('./pre-model/Gm2.pth')) 
@@ -132,7 +133,7 @@ def train(avg_tensor = None, coefs=0):
 				#torch.save(Gm2.state_dict(), resultPath1_2+'/Gm2_model_ep%d.pth'%epoch)
 
 if __name__ == "__main__":
-	resultPath = "./result/Gm_1&2_V10_3"
+	resultPath = "./result/Gm_1&2_V10_4"
 	if not os.path.exists(resultPath): os.mkdir(resultPath)
 
 	resultPath1_1 = resultPath+"/imgs"
