@@ -56,7 +56,7 @@ def train(avg_tensor = None, coefs=0):
 	loss_kl = torch.nn.KLDivLoss()
 	loss_lpips = lpips.LPIPS(net='vgg').to('cuda')
 
-	batch_size=5
+	batch_size=4
 	for epoch in range(100000):
 		set_seed(epoch%20000)
 		z = torch.randn(batch_size, 512).to('cuda') #[32, 512]
