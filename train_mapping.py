@@ -104,14 +104,14 @@ def train(avg_tensor = None, coefs=0):
 
 		loss_3 =  loss_img_lpips  + loss_m1_mse_img*3
 
-		loss_all = loss_1+loss_3*10
+		loss_all = +loss_2+loss_1*3+loss_3*10 # z -> w -> x
 		loss_all.backward()
 		Gm_optimizer.step()
 
 		print('i_'+str(epoch)+'--loss_all__:'+str(loss_all.item())+'--loss_m1_mse:'+str(loss_m1_mse.item())+'--loss_m1_mse_mean:'+str(loss_m1_mse_mean.item())+'--loss_m1_mse_std:'+str(loss_m1_mse_std.item())+'--loss_kl_w:'+str(loss_kl_w.item()))
 		print('--loss_m2_mse:'+str(loss_m2_mse.item())+'--loss_m2_mse_mean:'+str(loss_m2_mse_mean.item())+'--loss_m2_mse_std:'+str(loss_m2_mse_std.item())+'--loss_kl_z:'+str(loss_kl_z.item()))
 		#print('--loss_m1_mse_img:'+str(loss_m1_mse_img.item())+'--loss_m2_mse_img:'+str(loss_m2_mse_img.item())+'--loss_m3_mse_img:'+str(loss_m3_mse_img.item()))
-		print('loss_img_lpips'+str(loss_img_lpips)+'--loss_m1_mse_img:'+str(loss_m1_mse_img.item()))
+		print('loss_img_lpips'+str(loss_img_lpips.item())+'--loss_m1_mse_img:'+str(loss_m1_mse_img.item()))
 		print('-')
 
 		if epoch % 100 == 0:
@@ -124,7 +124,7 @@ def train(avg_tensor = None, coefs=0):
 				print('i_'+str(epoch)+'--loss_all__:'+str(loss_all.item())+'--loss_m1_mse:'+str(loss_m1_mse.item())+'--loss_m1_mse_mean:'+str(loss_m1_mse_mean.item())+'--loss_m1_mse_std:'+str(loss_m1_mse_std.item())+'--loss_kl_w:'+str(loss_kl_w.item()),file=f)
 				print('--loss_m2_mse:'+str(loss_m2_mse.item())+'--loss_m2_mse_mean:'+str(loss_m2_mse_mean.item())+'--loss_m2_mse_std:'+str(loss_m2_mse_std.item())+'--loss_kl_z:'+str(loss_kl_z.item()),file=f)
 				#print('--loss_m1_mse_img:'+str(loss_m1_mse_img.item())+'--loss_m2_mse_img:'+str(loss_m2_mse_img.item())+'--loss_m3_mse_img:'+str(loss_m3_mse_img.item()),file=f)
-				print('loss_img_lpips'+str(loss_img_lpips)+'--loss_m1_mse_img:'+str(loss_m1_mse_img.item()),file=f)
+				print('loss_img_lpips'+str(loss_img_lpips.item())+'--loss_m1_mse_img:'+str(loss_m1_mse_img.item()),file=f)
 			if epoch % 5000 == 0:
 				torch.save(Gm1.state_dict(), resultPath1_2+'/Gm1_model_ep%d.pth'%epoch)
 				#torch.save(Gm2.state_dict(), resultPath1_2+'/Gm2_model_ep%d.pth'%epoch)
