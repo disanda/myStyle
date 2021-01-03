@@ -36,6 +36,7 @@ def train(avg_tensor = None, coefs=0):
 	Gm.buffer1 = avg_tensor
 
 	Gm1 = Mapping3()
+	Gm1.load_state_dict('/_yucheng/myStyle/myStyle-v1/result/Gm_1&2_V10_6/models/Gm1_model_ep80000.pth')
 	Gm2 = Mapping4()
 	#Gm1.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/Gm_1&2_V10_3/models/Gm1_model_ep10000.pth'))
 	#Gm2 = Mapping2(num_layers=18, mapping_layers=8, latent_size=512, inverse=True)
@@ -104,7 +105,7 @@ def train(avg_tensor = None, coefs=0):
 
 		loss_3 =  loss_img_lpips  + loss_m1_mse_img*3
 
-		loss_all = loss_2+loss_1*3+loss_3*10 # z -> w -> x
+		loss_all = loss_2+loss_1*3+loss_3*15 # z -> w -> x
 		loss_all.backward()
 		Gm_optimizer.step()
 
@@ -127,10 +128,10 @@ def train(avg_tensor = None, coefs=0):
 				print('loss_img_lpips'+str(loss_img_lpips.item())+'--loss_m1_mse_img:'+str(loss_m1_mse_img.item()),file=f)
 			if epoch % 5000 == 0:
 				torch.save(Gm1.state_dict(), resultPath1_2+'/Gm1_model_ep%d.pth'%epoch)
-				#torch.save(Gm2.state_dict(), resultPath1_2+'/Gm2_model_ep%d.pth'%epoch)
+				torch.save(Gm2.state_dict(), resultPath1_2+'/Gm2_model_ep%d.pth'%epoch)
 
 if __name__ == "__main__":
-	resultPath = "./result/Gm_1&2_V10_6"
+	resultPath = "./result/Gm_1&2_V10_6_saveGM2"
 	if not os.path.exists(resultPath): os.mkdir(resultPath)
 
 	resultPath1_1 = resultPath+"/imgs"
