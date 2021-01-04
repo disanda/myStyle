@@ -45,7 +45,7 @@ layer_idx = torch.arange(18)[np.newaxis, :, np.newaxis] # shape:[1,18,1], layer_
 ones = torch.ones(layer_idx.shape, dtype=torch.float32) # shape:[1,18,1], ones = [1,1,1,1,1,1,1,1]
 coefs = torch.where(layer_idx < 8, 0.7 * ones, ones)
 
-set_seed(19800)
+set_seed(19900)
 with torch.no_grad(): #这里需要生成图片和变量
 	latents = torch.randn(3, 512)
 	w1 = Gm(latents,coefs_m=coefs)
@@ -54,4 +54,4 @@ with torch.no_grad(): #这里需要生成图片和变量
 	imgs2 = G.forward(w2,8,remove_blob=True)
 
 imgs = torch.cat((imgs1,imgs2))
-save_image(imgs*0.5+0.5, 'img_blob.png',nrow=3)
+save_image(imgs*0.5+0.5, 'img_blob_2.png',nrow=3)
