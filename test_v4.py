@@ -34,7 +34,7 @@ G.load_state_dict(torch.load('./pre-model/Gs_dict.pth'))
 Gm = Mapping(num_layers=18, mapping_layers=8, latent_size=512, dlatent_size=512, mapping_fmaps=512)
 Gm.load_state_dict(torch.load('./pre-model/Gm_dict.pth')) 
 E = BE.BE()
-E.load_state_dict(torch.load('/Users/apple/Desktop/myStyle/model-result-v1/E/pre-model/E_v8_model_ep60000.pth',map_location=torch.device('cpu')),strict=False)
+E.load_state_dict(torch.load('/_yucheng/myStyle/myStyle-v1/result/EB_V3_finetLoss_debugSy2/models/E_model_ep50000.pth',map_location=torch.device('cpu')),strict=False)
 
 #set_seed(epoch%20000)
 #latents = torch.randn(batch_size, 512).to('cuda') #[32, 512]
@@ -45,7 +45,7 @@ layer_idx = torch.arange(18)[np.newaxis, :, np.newaxis] # shape:[1,18,1], layer_
 ones = torch.ones(layer_idx.shape, dtype=torch.float32) # shape:[1,18,1], ones = [1,1,1,1,1,1,1,1]
 coefs = torch.where(layer_idx < 8, 0.7 * ones, ones)
 
-set_seed(0)
+set_seed(19800)
 with torch.no_grad(): #这里需要生成图片和变量
 	latents = torch.randn(3, 512)
 	w1 = Gm(latents,coefs_m=coefs)
