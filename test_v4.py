@@ -4,7 +4,7 @@ from module.net import Generator, Mapping, Discriminator
 from torchvision.utils import save_image
 import torchvision
 from torch.nn import functional as F
-import module.BE as BE
+import module.BE_old as BE
 
 #------------------随机数设置--------------
 def set_seed(seed):
